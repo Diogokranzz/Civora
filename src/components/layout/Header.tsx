@@ -10,7 +10,7 @@ interface HeaderProps {
   hidden: boolean
 }
 
-const HOME_SECTIONS = ['home', 'fogueira']
+const HOME_SECTIONS = ['home', 'setup']
 
 export function Header({ hidden }: HeaderProps) {
   const lenis = useLenis()
