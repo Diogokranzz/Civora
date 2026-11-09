@@ -42,6 +42,19 @@ const DAMP_PARALLAX = 2
 const HOVER_LEAVE_MS = 320
 /** Mergulho até o objeto escolhido antes de abrir a página. */
 const DIVE_SECONDS = 1.3
+/**
+ * Entrar na tela (monitores e notebook): a câmera vai de frente até a imagem ocupar a tela toda e
+ * continua acelerando para dentro dela. `ENTER_SECONDS` é o total; a aproximação usa `ENTER_APPROACH` dele.
+ */
+const ENTER_SECONDS = 1.7
+const ENTER_APPROACH = 0.72
+/**
+ * Pegar o celular (Contato): ele sobe da mesa, vira de pé para a câmera e vem para o meio da tela;
+ * no fim chega bem perto, até a tela dele ocupar a visão. `PICKUP_LIFT` é a parte da subida.
+ */
+const PICKUP_SECONDS = 1.6
+const PICKUP_LIFT = 0.28
+const PICKUP_ARRIVE = 0.74
 const LED_COLOR = 0xff1e1e
 /** Tempo de cada capa no monitor e da passagem entre elas, em segundos. */
 const SLIDE_TIME = 3.6
@@ -136,7 +149,22 @@ export class DeskStage {
   private velocity = new THREE.Vector3()
   private leaveTimer = 0
   /** Mergulho em andamento: objeto, início e de onde a câmera saiu. */
-  private dive: { index: number; start: number; from: THREE.Vector3; fromLook: THREE.Vector3 } | null = null
+  private dive: {
+    index: number
+    start: number
+    from: THREE.Vector3
+    fromLook: THREE.Vector3
+    /** Tela em que a câmera entra (monitor ou notebook); sem ela, só se aproxima do objeto. */
+    screen: THREE.Mesh | null
+    /** Normal média da tela, no espaço do próprio mesh. */
+    normal: THREE.Vector3
+    /** Celular pego da mesa: posição e giro iniciais, no mundo. */
+    pickup: { group: THREE.Group; position: THREE.Vector3; quaternion: THREE.Quaternion } | null
+  } | null = null
+  /** Telas de cada objeto do menu, para a câmera entrar nelas no clique. */
+  private screens = new Map<DeskObject, THREE.Mesh[]>()
+  /** Tela clicada por último na cena: com dois monitores, a câmera entra no que foi clicado. */
+  private clickedScreen: THREE.Mesh | null = null
   private github = createGithubTexture(GITHUB_PROFILE, GITHUB_REPOS)
   private raycaster = new THREE.Raycaster()
   private pointer = new THREE.Vector2(9, 9)
@@ -218,11 +246,28 @@ export class DeskStage {
   /** A câmera mergulha no objeto escolhido; a página abre logo depois (quem chama decide quando). */
   diveInto(index: number) {
     if (this.dive || this.reducedMotion) return
+    const object = this.interactive[index]?.object
+    const screens = (object && this.screens.get(object)) || []
+    const screen =
+      this.clickedScreen && screens.includes(this.clickedScreen) ? this.clickedScreen : (screens[0] ?? null)
+    this.clickedScreen = null
+    // O celular sai do grupo do objeto e passa a ser movido direto no mundo.
+    const phone = object === 'phone' ? this.interactive[index].group : null
+    if (phone) this.scene.attach(phone)
     this.dive = {
       index,
       start: performance.now(),
       from: this.camera.position.clone(),
       fromLook: this.look.clone(),
+      screen,
+      normal: screen ? averageNormal(screen) : new THREE.Vector3(),
+      pickup: phone
+        ? {
+            group: phone,
+            position: phone.getWorldPosition(new THREE.Vector3()),
+            quaternion: phone.getWorldQuaternion(new THREE.Quaternion()),
+          }
+        : null,
     }
   }
 
@@ -494,6 +539,7 @@ export class DeskStage {
       for (const node of nodes)
         node.traverse((child) => {
           if (!(child instanceof THREE.Mesh) || (child.material as THREE.Material).name !== 'screen') return
+          this.screens.set('monitor', [...(this.screens.get('monitor') ?? []), child])
           ;(child.material as THREE.Material).dispose()
           child.material = new THREE.MeshBasicMaterial({
             map: index === 0 ? this.screen.texture : this.github.texture,
@@ -603,7 +649,9 @@ export class DeskStage {
       if (baseGeometry) base.add(new THREE.Mesh(baseGeometry, material))
       if (lidGeometry) {
         lidGeometry.translate(-LAPTOP_HINGE.x, -LAPTOP_HINGE.y, 0)
-        lid.add(new THREE.Mesh(lidGeometry, material))
+        const part = new THREE.Mesh(lidGeometry, material)
+        if (original.name === 'Screen.001') this.screens.set('laptop', [part])
+        lid.add(part)
       }
     }
     // Tira a inclinação do suporte: a base fica deitada na mesa.
@@ -697,7 +745,18 @@ export class DeskStage {
     if (this.dive) return
     this.setPointer(event)
     const index = this.pick()
-    if (index !== null) this.options.onSelect(index)
+    if (index === null) return
+    // Com dois monitores, a câmera entra no que está mais perto do clique.
+    const object = this.interactive[index].object
+    const point = this.raycaster.intersectObject(this.interactive[index].group, true)[0]?.point
+    const screens = this.screens.get(object) ?? []
+    this.clickedScreen =
+      point && screens.length
+        ? screens.reduce((best, screen) =>
+            measure(screen).distanceToPoint(point) < measure(best).distanceToPoint(point) ? screen : best,
+          )
+        : null
+    this.options.onSelect(index)
   }
 
   private setPointer(event: MouseEvent) {
@@ -814,7 +873,12 @@ export class DeskStage {
     this.camera.position.add(this.offset)
     this.look.add(this.offset)
 
-    if (this.dive) {
+    if (this.dive?.pickup) {
+      // Pegando o celular: a câmera fica parada e o celular vem até ela.
+      this.camera.position.copy(this.dive.from)
+      this.look.copy(this.dive.fromLook)
+    } else if (this.dive?.screen) this.enterScreen(this.dive.screen, this.dive.normal)
+    else if (this.dive) {
       // Mergulho: do ponto atual até perto do objeto, acelerando e freando (easeInOutCubic).
       const t = Math.min((performance.now() - this.dive.start) / 1000 / DIVE_SECONDS, 1)
       const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2
@@ -826,6 +890,92 @@ export class DeskStage {
     }
     this.camera.lookAt(this.look)
     this.camera.updateMatrixWorld()
+    if (this.dive?.pickup) this.movePhone(this.dive.pickup)
+  }
+
+  /**
+   * O celular sobe da mesa, vira de pé com a tela para a câmera e para no meio da visão, como se
+   * alguém o pegasse; no fim chega bem perto, até a tela dele tomar a visão.
+   */
+  private movePhone(pickup: { group: THREE.Group; position: THREE.Vector3; quaternion: THREE.Quaternion }) {
+    if (!this.dive) return
+    const t = Math.min((performance.now() - this.dive.start) / 1000 / PICKUP_SECONDS, 1)
+    const camera = this.camera
+    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0)
+    const up = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1)
+    const back = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 2)
+    // Tela do celular (+y) virada para a câmera e o topo da imagem (-z) para cima.
+    const facing = new THREE.Quaternion().setFromRotationMatrix(
+      new THREE.Matrix4().makeBasis(right, back, up.clone().negate()),
+    )
+    // Distância em que a tela do celular ocupa uns 70% da altura (ou 80% da largura, no celular em pé).
+    const tangent = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))
+    const near = Math.max(1.6 / (0.7 * 2 * tangent), 0.74 / (0.8 * 2 * tangent * camera.aspect))
+    const held = camera.position.clone().addScaledVector(back, -near)
+
+    const group = pickup.group
+    if (t < PICKUP_LIFT) {
+      // Sobe um pouco da mesa, já começando a girar.
+      const k = THREE.MathUtils.smoothstep(t / PICKUP_LIFT, 0, 1)
+      group.position.copy(pickup.position).y += k * 0.6
+      group.quaternion.copy(pickup.quaternion).slerp(facing, k * 0.25)
+    } else if (t < PICKUP_ARRIVE) {
+      // Vem até o meio da tela numa curva, terminando de pé.
+      const k = (t - PICKUP_LIFT) / (PICKUP_ARRIVE - PICKUP_LIFT)
+      const eased = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2
+      const start = pickup.position.clone()
+      start.y += 0.6
+      const control = start.clone().lerp(held, 0.5)
+      control.y += 1.2
+      const a = start.clone().lerp(control, eased)
+      const b = control.lerp(held, eased)
+      group.position.copy(a.lerp(b, eased))
+      const turn = new THREE.Quaternion().copy(pickup.quaternion).slerp(facing, 0.25)
+      group.quaternion.copy(turn.slerp(facing, eased))
+    } else {
+      // Na mão: chega mais perto, acelerando, até a tela dele tomar a visão.
+      const k = (t - PICKUP_ARRIVE) / (1 - PICKUP_ARRIVE)
+      group.position.copy(held).addScaledVector(back, near * 0.62 * k * k)
+      group.quaternion.copy(facing)
+    }
+    group.scale.setScalar(1)
+  }
+
+  /**
+   * Entrar na tela: a câmera faz uma curva até ficar de frente para ela, para onde a imagem ocupa a
+   * tela inteira, e depois acelera para dentro. A tampa do notebook ainda pode estar abrindo, por isso
+   * a posição da tela é lida a cada quadro.
+   */
+  private enterScreen(screen: THREE.Mesh, localNormal: THREE.Vector3) {
+    if (!this.dive) return
+    const t = Math.min((performance.now() - this.dive.start) / 1000 / ENTER_SECONDS, 1)
+    const box = measure(screen)
+    const center = box.getCenter(new THREE.Vector3())
+    const normal = localNormal.clone().transformDirection(screen.matrixWorld)
+    // A normal de algumas telas aponta para trás: vale o lado de onde a câmera vem.
+    if (normal.dot(this.dive.from.clone().sub(center)) < 0) normal.negate()
+    const size = box.getSize(new THREE.Vector3())
+    const width = Math.hypot(size.x, size.z)
+    const height = Math.max(size.y, width / (16 / 9))
+    // Distância em que a tela enche a visão: pela altura na tela deitada, pela largura no celular em pé.
+    const tangent = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2))
+    const fill = Math.max(height / 2 / tangent, width / 2 / (tangent * this.camera.aspect))
+    const front = center.clone().addScaledVector(normal, fill * 0.9)
+    if (t < ENTER_APPROACH) {
+      const k = t / ENTER_APPROACH
+      const eased = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2
+      // Curva: o ponto de controle fica na frente da tela, então a chegada é sempre de frente.
+      const control = center.clone().addScaledVector(normal, this.dive.from.distanceTo(center) * 0.55)
+      const a = this.dive.from.clone().lerp(control, eased)
+      const b = control.lerp(front, eased)
+      this.camera.position.copy(a.lerp(b, eased))
+      this.look.lerpVectors(this.dive.fromLook, center, Math.min(eased * 1.25, 1))
+    } else {
+      // Já de frente: acelera para dentro da imagem.
+      const k = (t - ENTER_APPROACH) / (1 - ENTER_APPROACH)
+      this.camera.position.copy(front).addScaledVector(normal, -fill * 0.68 * k * k)
+      this.look.copy(center)
+    }
   }
 
   private project() {
@@ -842,6 +992,8 @@ export class DeskStage {
     const active = this.dive?.index ?? this.focused ?? this.hovered
     const objectEase = delta > 0 ? 1 - Math.exp(-DAMP_OBJECT * delta) : 1
     this.interactive.forEach((item, index) => {
+      // O celular pego é movido em `movePhone`.
+      if (this.dive?.pickup?.group === item.group) return
       item.amount += ((index === active ? 1 : 0) - item.amount) * objectEase
       if (item.lift) item.group.position.y = item.baseY + item.amount * 0.14
       item.group.scale.setScalar(1 + item.amount * (item.lift ? 0.025 : 0.015))
@@ -981,4 +1133,12 @@ function splitByHeight(mesh: THREE.Mesh, height: number): [THREE.BufferGeometry 
     if (side.uv.length) geometry.setAttribute('uv', new THREE.Float32BufferAttribute(side.uv, 2))
     return geometry
   }) as [THREE.BufferGeometry | null, THREE.BufferGeometry | null]
+}
+
+/** Normal média de uma malha plana (a tela), no espaço dela. */
+function averageNormal(mesh: THREE.Mesh) {
+  const normals = mesh.geometry.getAttribute('normal')
+  const sum = new THREE.Vector3()
+  if (normals) for (let i = 0; i < normals.count; i++) sum.add(new THREE.Vector3().fromBufferAttribute(normals, i))
+  return sum.lengthSq() > 0 ? sum.normalize() : new THREE.Vector3(0, 0, 1)
 }
