@@ -20,6 +20,14 @@ const LABEL_MARGIN = 72
 const LEAVE_MS = 320
 /** A página abre no meio do mergulho da câmera; a troca de canal cobre o resto. */
 const OPEN_DELAY_MS = 650
+/**
+ * Monitores e notebook: a câmera entra na tela (1,7 s em `DeskStage`), e a página abre quando a imagem
+ * já ocupa a tela toda.
+ */
+const SCREEN_OPEN_DELAY_MS = 1450
+const SCREEN_OBJECTS = new Set(['monitor', 'laptop'])
+/** Celular: ele vem da mesa até a frente da câmera (1,6 s em `DeskStage`) e a página abre no fim. */
+const PHONE_OPEN_DELAY_MS = 1400
 
 const number = (index: number) => String(index + 1).padStart(2, '0')
 
@@ -52,7 +60,10 @@ export function Setup({ reducedMotion }: SetupProps) {
     (index: number) => {
       if (diving !== null) return
       setDiving(index)
-      window.setTimeout(() => navigate(SETUP_SPOTS[index].href), reducedMotion ? 0 : OPEN_DELAY_MS)
+      const { object } = SETUP_SPOTS[index]
+      const delay =
+        object === 'phone' ? PHONE_OPEN_DELAY_MS : SCREEN_OBJECTS.has(object) ? SCREEN_OPEN_DELAY_MS : OPEN_DELAY_MS
+      window.setTimeout(() => navigate(SETUP_SPOTS[index].href), reducedMotion ? 0 : delay)
     },
     [diving, reducedMotion],
   )
