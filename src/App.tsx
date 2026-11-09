@@ -8,7 +8,7 @@ import { useReducedMotion } from './hooks/useReducedMotion'
 import { followLink, useRoute } from './hooks/useRoute'
 import { useSectionSnap } from './hooks/useSectionSnap'
 import { About } from './sections/About'
-import { Bonfire } from './sections/Bonfire'
+import { Setup } from './sections/Setup'
 import { Certificates } from './sections/Certificates'
 import { Contact } from './sections/Contact'
 import { Home } from './sections/Home'
@@ -31,7 +31,7 @@ const PAGE_TITLES: Record<string, string> = {
 }
 
 /** Seções de tela cheia em que a rolagem encaixa, sem parar no meio do caminho. */
-const SNAP_SECTIONS = ['home', 'fogueira']
+const SNAP_SECTIONS = ['home', 'setup']
 
 /**
  * Fluxo da entrada:
@@ -106,18 +106,18 @@ export default function App() {
         {isHome ? (
           <>
             <Home started={started} reducedMotion={reducedMotion} onParticlesReady={handleParticlesReady} />
-            <Bonfire reducedMotion={reducedMotion} />
+            <Setup reducedMotion={reducedMotion} />
           </>
         ) : (
           <>
             <div className="pointer-events-none absolute inset-x-0 top-20 z-30 lg:top-24">
               <div className="px-6 lg:px-10">
                 <a
-                  href="/#fogueira"
-                  onClick={(event) => followLink(event, '/#fogueira')}
+                  href="/#setup"
+                  onClick={(event) => followLink(event, '/#setup')}
                   className="pointer-events-auto text-xs font-medium tracking-[0.18em] uppercase opacity-70 transition-opacity hover:opacity-100"
                 >
-                  ← Voltar para a fogueira
+                  ← Voltar para o setup
                 </a>
               </div>
             </div>

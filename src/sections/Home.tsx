@@ -12,7 +12,7 @@ interface HomeProps {
 export function Home({ started, reducedMotion, onParticlesReady }: HomeProps) {
   const stageRef = useRef<HTMLDivElement>(null)
 
-  // O Home fica parado e vai sumindo enquanto a fogueira sobe por cima dele.
+  // O Home fica parado e vai sumindo enquanto o setup sobe por cima dele.
   useEffect(() => {
     const onScroll = () => {
       const stage = stageRef.current

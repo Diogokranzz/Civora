@@ -40,8 +40,33 @@ export const SOCIAL_LINKS = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com/in/diogo-guilherme-de-assis-reis-002bb6208/' },
 ]
 
-/** Créditos dos modelos 3D da fogueira (licença CC BY 4.0, exige citar autor e fonte). */
+/** Créditos dos modelos 3D do site (licença CC BY 4.0, exige citar autor e fonte). */
 export const MODEL_CREDITS = [
+  {
+    title: 'Nintendo Switch',
+    author: '3dvachevsky',
+    url: 'https://sketchfab.com/3d-models/nintendo-switch-78009be398d142abb0b758238c209d01',
+  },
+  {
+    title: 'Gaming Setup (low-poly)',
+    author: 'LagzDesign',
+    url: 'https://sketchfab.com/3d-models/gaming-setup-low-poly-caffb0d42a594ac2b67970af07d10a5f',
+  },
+  {
+    title: 'gaming setup v2 (low-poly)',
+    author: 'LagzDesign',
+    url: 'https://sketchfab.com/3d-models/gaming-setup-v2-low-poly-c4aafe2ed67841b9b52e80e8e469dbb8',
+  },
+  {
+    title: 'Gaming setup',
+    author: 'Hamza_Tariq',
+    url: 'https://sketchfab.com/3d-models/gaming-setup-6ba24900db4e4031a1d263cd324fead8',
+  },
+  {
+    title: 'Gaming and Modelling Computer Setup',
+    author: 'NokiDesigns',
+    url: 'https://sketchfab.com/3d-models/gaming-and-modelling-computer-setup-a19ca31b5f77489e9f03eae603cc1ffe',
+  },
   {
     title: 'Micro SD card',
     author: 'struffelproductions',
@@ -61,25 +86,5 @@ export const MODEL_CREDITS = [
     title: 'Gameboy',
     author: 'grimmorf',
     url: 'https://sketchfab.com/3d-models/gameboy-4a1da0cefa904c4eae895338bd6f3334',
-  },
-  {
-    title: 'Ornstein',
-    author: 'moonblade777',
-    url: 'https://sketchfab.com/3d-models/ornstein-6945be7b57874fc591e1121c3b9c7279',
-  },
-  {
-    title: 'Dark Souls (cenário)',
-    author: 'dark_igorek',
-    url: 'https://sketchfab.com/3d-models/dark-souls-d823af63681b4e65b222606043ec81c7',
-  },
-  {
-    title: 'Dark Souls - Bonfire',
-    author: 'UselessViking',
-    url: 'https://sketchfab.com/3d-models/dark-souls-bonfire-b0d68c8f4cd0487da3d1fb8327ab1044',
-  },
-  {
-    title: 'Knight Artorias and Great Grey Wolf Sif',
-    author: '9S',
-    url: 'https://sketchfab.com/3d-models/knight-artorias-and-great-grey-wolf-sif-bdf57355f95a420fa0c5b3e924bea16d',
   },
 ]
