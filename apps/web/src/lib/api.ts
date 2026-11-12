@@ -18,6 +18,7 @@ import type {
   TicketTimelineEventDto,
   TopologyGraphDto,
 } from '@civora/types';
+import { isDemoMode, handleDemoRequest } from './demo-client';
 import { useCivoraStore } from './store';
 import { traceUiInteraction } from './telemetry';
 
@@ -38,6 +39,11 @@ export async function apiRequest<T>(
   init: RequestInit & { idempotencyKey?: string; skipRefresh?: boolean } = {},
 ): Promise<T> {
   const state = useCivoraStore.getState();
+
+  if (isDemoMode()) {
+    return handleDemoRequest<T>(path, init, state.user?.id);
+  }
+
   const headers = new Headers(init.headers);
 
   if (!headers.has('Content-Type') && init.body && !(init.body instanceof FormData)) {

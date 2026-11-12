@@ -6,6 +6,7 @@ import { SOCKET_EVENTS } from '@civora/types';
 import { usePathname } from 'next/navigation';
 import { io, type Socket } from 'socket.io-client';
 import { civoraApi } from '../lib/api';
+import { isDemoMode } from '../lib/demo-client';
 import { RealtimeEventBatcher } from '../lib/realtime-batcher';
 import { useCivoraStore } from '../lib/store';
 import { initClientTelemetry, reportBackpressureBatch } from '../lib/telemetry';
@@ -49,6 +50,13 @@ function ThemeAndRealtimeSync() {
 
   React.useEffect(() => {
     if (!accessToken || !activeOrganizationId) return;
+
+    if (isDemoMode()) {
+      const timer = setInterval(() => {
+        triggerRealtimePulse('DEMO_SYNC');
+      }, 30_000);
+      return () => clearInterval(timer);
+    }
 
     const wsUrl = (process.env.NEXT_PUBLIC_WS_URL || civoraApi.getApiBaseUrl()).replace(/\/+$/, '');
     const socket: Socket = io(`${wsUrl}/realtime`, {
