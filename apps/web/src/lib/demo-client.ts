@@ -38,7 +38,7 @@ import {
 } from './demo-seed';
 import { ApiClientError } from './errors';
 
-const DEMO_STORAGE_KEY = 'civora_demo_db_v1';
+const DEMO_STORAGE_KEY = 'civora_demo_db_v2';
 
 let memoryState: DemoDatabaseState | null = null;
 
@@ -64,10 +64,13 @@ function loadDemoState(): DemoDatabaseState {
     return memoryState;
   }
   try {
+    if (window.localStorage.getItem('civora_demo_db_v1')) {
+      window.localStorage.removeItem('civora_demo_db_v1');
+    }
     const raw = window.localStorage.getItem(DEMO_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DemoDatabaseState;
-      if (parsed && parsed.version === 1) {
+      if (parsed && parsed.version === 2) {
         return parsed;
       }
     }
@@ -1455,7 +1458,16 @@ export async function handleDemoRequest<T>(
   }
 
   if (normalizedPath === '/reports/dashboard' && method === 'GET') {
-    const tickets = state.tickets;
+    let tickets = state.tickets;
+    const unitId = searchParams.get('unitId');
+    if (unitId) {
+      tickets = tickets.filter((t) => t.unit?.id === unitId);
+    }
+    const deptId = searchParams.get('departmentId');
+    if (deptId) {
+      tickets = tickets.filter((t) => t.department?.id === deptId);
+    }
+
     const totalTickets = tickets.length;
     const criticalTickets = tickets.filter((t) => t.priority === 'CRITICAL' && t.status !== 'RESOLVED' && t.status !== 'CLOSED').length;
     const inProgressTickets = tickets.filter((t) => t.status === 'IN_PROGRESS').length;
@@ -1478,14 +1490,8 @@ export async function handleDemoRequest<T>(
       { status: 'RESOLVED', count: tickets.filter((t) => t.status === 'RESOLVED').length },
     ];
 
-    const volumeOverTime = [
-      { date: '06/11', created: 3, resolved: 2 },
-      { date: '07/11', created: 4, resolved: 4 },
-      { date: '08/11', created: 2, resolved: 3 },
-      { date: '09/11', created: 5, resolved: 4 },
-      { date: '10/11', created: 6, resolved: 5 },
-      { date: '11/11', created: 4, resolved: 3 },
-      { date: '12/11', created: totalTickets, resolved: resolvedToday },
+    const volumeOverTime = totalTickets === 0 ? [] : [
+      { date: 'Hoje', created: totalTickets, resolved: resolvedToday },
     ];
 
     const teamPerformance = state.teams.map((tm) => {
@@ -1497,8 +1503,8 @@ export async function handleDemoRequest<T>(
         teamName: tm.name,
         openCount,
         resolvedCount,
-        slaComplianceRate: 97,
-        avgResolutionMinutes: 48,
+        slaComplianceRate: openCount + resolvedCount === 0 ? 100 : 97,
+        avgResolutionMinutes: 0,
       };
     });
 
@@ -1512,11 +1518,11 @@ export async function handleDemoRequest<T>(
       inProgressTickets,
       resolvedToday,
       backlogTickets,
-      mttaMinutes: 14,
-      mttrMinutes: 52,
-      slaComplianceRate: 98.4,
-      reopenRate: 1.2,
-      avgCsat: 4.9,
+      mttaMinutes: 0,
+      mttrMinutes: 0,
+      slaComplianceRate: 100,
+      reopenRate: 0,
+      avgCsat: 0,
       byPriority,
       byStatus,
       volumeOverTime,

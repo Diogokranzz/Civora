@@ -1,12 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   getTelemetrySummary,
   reportFpsDrop,
   reportRenderMetric,
+  resetTelemetryForTesting,
   traceUiInteraction,
 } from './telemetry';
 
 describe('Client OpenTelemetry instrumentation helpers', () => {
+  beforeEach(() => {
+    resetTelemetryForTesting();
+  });
   it('propagates result and records interaction span without throwing outside browser OTel', async () => {
     const result = await traceUiInteraction('ticket.create', { 'civora.priority': 'HIGH' }, async () => {
       return { id: 'ok-1' };

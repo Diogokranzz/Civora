@@ -267,8 +267,8 @@ export function reportRenderMetric(sample: SurfaceRenderSample): void {
   }
 
   const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-  const prev = lastSurfaceEmitAt.get(sample.surfaceId) ?? 0;
-  if (now - prev < 5000) {
+  const prev = lastSurfaceEmitAt.get(sample.surfaceId);
+  if (prev !== undefined && now - prev < 5000) {
     return;
   }
   lastSurfaceEmitAt.set(sample.surfaceId, now);
@@ -289,6 +289,12 @@ export function reportRenderMetric(sample: SurfaceRenderSample): void {
     },
   });
   span.end();
+}
+
+export function resetTelemetryForTesting(): void {
+  lastSurfaceEmitAt.clear();
+  telemetryState.fpsDrops = [];
+  telemetryState.slowGlassRenders = [];
 }
 
 export function getTelemetrySummary(): TelemetrySnapshot {
