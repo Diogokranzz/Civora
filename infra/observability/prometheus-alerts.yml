@@ -1,0 +1,56 @@
+groups:
+  - name: civora-sli-alerts
+    rules:
+      - alert: CivoraApiDown
+        expr: up{job="civora-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Civora API indisponível"
+          description: "A instância civora-api não respondeu ao scrape do Prometheus por mais de 1 minuto."
+
+      - alert: CivoraHighErrorRate
+        expr: sum(rate(civora_http_requests_total{status=~"5.."}[5m])) / sum(rate(civora_http_requests_total[5m])) > 0.05
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Taxa de erros 5xx acima de 5%"
+          description: "A API Civora está retornando mais de 5% de erros 5xx nos últimos 5 minutos."
+
+      - alert: CivoraWorkerJobFailures
+        expr: increase(civora_job_failures_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Falhas recorrentes em jobs assíncronos"
+          description: "Foram registradas mais de 5 falhas de processamento nas filas BullMQ."
+
+      - alert: CivoraRedisCircuitOpen
+        expr: increase(civora_redis_circuit_open_total[5m]) > 0 or max(civora_redis_circuit_state) == 1
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Circuit Breaker do Redis aberto (Fallback PostgreSQL ativo)"
+          description: "O cache de esqueleto CMDB no Redis falhou consecutivamente e abriu o circuito via opossum. Operação mantida via fallback PostgreSQL/DataLoader com latência degradada."
+
+      - alert: CivoraEventLoopLagHigh
+        expr: civora_nodejs_eventloop_lag_p99_seconds > 0.05
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Lag de Event Loop acima de 50ms no NestJS"
+          description: "A thread principal da API atingiu lag p99 superior a 50ms durante rajada de tráfego."
+
+      - alert: CivoraFrontendInpDegraded
+        expr: histogram_quantile(0.95, sum(rate(civora_frontend_inp_milliseconds_bucket[5m])) by (le)) > 200
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "INP p95 do Frontend acima de 200ms"
+          description: "A latência de interação no navegador excedeu 200ms no percentil 95."

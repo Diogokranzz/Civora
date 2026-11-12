@@ -1,0 +1,10 @@
+{
+  "extends": "@civora/tsconfig/nestjs.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "sourceMap": true
+  },
+  "include": ["src/**/*.ts", "prisma/**/*.ts", "test/**/*.ts"]
+}
+

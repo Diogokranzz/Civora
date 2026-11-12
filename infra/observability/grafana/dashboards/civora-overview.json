@@ -1,0 +1,42 @@
+{
+  "title": "Civora Platform Overview",
+  "uid": "civora-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "15s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Taxa de Requisições HTTP (req/s)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        { "expr": "sum(rate(civora_http_requests_total[1m])) by (status)", "legendFormat": "HTTP {{status}}" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Latência p95 por Rota (s)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(civora_http_request_duration_seconds_bucket[5m])) by (le, route))", "legendFormat": "{{route}}" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Chamados Criados",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 8 },
+      "targets": [{ "expr": "sum(civora_tickets_created_total)" }]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Violações de SLA",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 8 },
+      "targets": [{ "expr": "sum(civora_sla_breaches_total)" }]
+    }
+  ]
+}
+

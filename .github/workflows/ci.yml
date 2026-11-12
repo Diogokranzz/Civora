@@ -1,0 +1,76 @@
+name: Civora CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies (frozen lockfile)
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit Tests
+        run: pnpm test
+
+      - name: PostgreSQL Integration Tests (Testcontainers)
+        run: pnpm test:integration
+
+      - name: Build All Apps & Packages
+        run: pnpm build
+
+      - name: Dependency Security Audit
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: civora-dist
+          path: |
+            apps/api/dist
+            apps/worker/dist
+            apps/web/.next
+
+  container-build-and-scan:
+    needs: quality-and-tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api, worker, web]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker Image (${{ matrix.service }})
+        run: docker build -f apps/${{ matrix.service }}/Dockerfile -t civora-${{ matrix.service }}:${{ github.sha }} .
+
+      - name: Run Trivy Vulnerability Scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: civora-${{ matrix.service }}:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" fill="none">
+  <rect width="36" height="36" rx="9" fill="#0F172A" />
+  <defs>
+    <linearGradient id="civora-icon-grad" x1="4" y1="4" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="55%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+  </defs>
+  <path
+    d="M18 3.5L30 10.4V25.6L18 32.5L6 25.6V10.4L18 3.5Z"
+    stroke="url(#civora-icon-grad)"
+    stroke-width="2.2"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M23.2 13.7C21.9 12.1 20 11.2 17.8 11.2C13.7 11.2 10.7 14.2 10.7 18C10.7 21.8 13.7 24.8 17.8 24.8C20 24.8 21.9 23.9 23.2 22.3"
+    stroke="#F8FAFC"
+    stroke-width="2.6"
+    stroke-linecap="round"
+  />
+  <circle cx="24.5" cy="18" r="2.2" fill="#38BDF8" />
+</svg>
+

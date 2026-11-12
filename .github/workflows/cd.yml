@@ -1,0 +1,57 @@
+name: Civora CD
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target deployment environment
+        required: true
+        type: choice
+        options:
+          - development
+          - test
+          - staging
+          - production
+      image_tag:
+        description: Container image tag / commit SHA
+        required: true
+        default: latest
+
+jobs:
+  migrate-and-deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.9.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate and Apply Versioned Database Migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pnpm --filter @civora/api exec prisma migrate status
+          pnpm db:migrate:deploy
+
+      - name: Build & Push Images to Registry
+        if: vars.CONTAINER_REGISTRY != ''
+        run: |
+          for svc in api worker web; do
+            docker build -f apps/${svc}/Dockerfile -t ${{ vars.CONTAINER_REGISTRY }}/civora-${svc}:${{ inputs.image_tag }} .
+            docker push ${{ vars.CONTAINER_REGISTRY }}/civora-${svc}:${{ inputs.image_tag }}
+          done
+
+      - name: Verify Deployment Healthcheck
+        if: vars.HEALTHCHECK_URL != ''
+        run: curl -fsS "${{ vars.HEALTHCHECK_URL }}/health/ready"
+

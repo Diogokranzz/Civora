@@ -1,0 +1,12 @@
+{
+  "name": "@civora/tsconfig",
+  "version": "1.0.0",
+  "private": true,
+  "files": [
+    "base.json",
+    "library.json",
+    "nestjs.json",
+    "nextjs.json"
+  ]
+}
+

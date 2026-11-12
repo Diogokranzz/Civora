@@ -1,0 +1,113 @@
+{
+  "title": "Civora Backpressure, Telemetry & CMDB Topology",
+  "uid": "civora-backpressure-topology",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Emissão Realtime NestJS vs Event Loop Lag p99 (ms)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(civora_realtime_events_emitted_total[1m])) by (event)",
+          "legendFormat": "WS {{event}} (ev/s)"
+        },
+        {
+          "expr": "civora_nodejs_eventloop_lag_p99_seconds * 1000",
+          "legendFormat": "Node Event Loop Lag p99 (ms)"
+        },
+        {
+          "expr": "civora_nodejs_eventloop_lag_mean_seconds * 1000",
+          "legendFormat": "Node Event Loop Lag Mean (ms)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Backpressure Frontend: Eventos Coalescidos vs Fila Descartada (>500)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(civora_frontend_ws_coalesced_events_total[1m])",
+          "legendFormat": "Coalescidos (250ms debounce)"
+        },
+        {
+          "expr": "rate(civora_frontend_ws_dropped_events_total[1m])",
+          "legendFormat": "Shed / Dropped (>maxQueueDepth)"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Quedas de FPS WebGL (reportFpsDrop) & FPS Mínimo",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(civora_frontend_fps_drops_total[1m])) by (scene)",
+          "legendFormat": "Drops/s {{scene}}"
+        },
+        {
+          "expr": "civora_frontend_fps_min",
+          "legendFormat": "Min FPS {{scene}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Latência de Interação Frontend (INP p95 ms · Meta < 200ms)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(civora_frontend_inp_milliseconds_bucket[5m])) by (le))",
+          "legendFormat": "INP p95 (ms)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Hidratação Topologia CMDB (Redis Skeleton + DataLoader)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum(rate(civora_cmdb_cache_hits_total[1m]))",
+          "legendFormat": "Redis Skeleton HIT/s"
+        },
+        {
+          "expr": "sum(rate(civora_cmdb_cache_misses_total[1m]))",
+          "legendFormat": "Skeleton MISS/Fallback /s"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(civora_cmdb_hydration_duration_seconds_bucket[5m])) by (le, source)) * 1000",
+          "legendFormat": "Hydration p95 {{source}} (ms)"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Circuit Breaker Redis (Aberturas) & Bloqueios RBAC Bidirecionais",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "targets": [
+        {
+          "expr": "sum(civora_redis_circuit_open_total)",
+          "legendFormat": "Redis Circuit Opens"
+        },
+        {
+          "expr": "max(civora_redis_circuit_state)",
+          "legendFormat": "Circuit State (0/0.5/1)"
+        },
+        {
+          "expr": "sum(civora_cmdb_governance_denials_total)",
+          "legendFormat": "RBAC Denials"
+        }
+      ]
+    }
+  ]
+}

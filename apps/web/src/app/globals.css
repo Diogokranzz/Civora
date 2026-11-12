@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased dark:bg-[#020617] dark:text-slate-100;
+  }
+
+  .dark select {
+    color-scheme: dark;
+  }
+
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus,
+  .dark textarea:-webkit-autofill,
+  .dark select:-webkit-autofill {
+    -webkit-text-fill-color: #f1f5f9;
+    -webkit-box-shadow: 0 0 0 1000px #070d1f inset;
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: #f1f5f9;
+  }
+
+  *:focus-visible {
+    @apply outline-2 outline-offset-2 outline-blue-600 dark:outline-blue-400;
+  }
+}
+
+@keyframes civora-border-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes civora-ambient-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.04);
+  }
+}
+
+.civora-gradient-ring {
+  animation: civora-border-spin 10s linear infinite;
+}
+
+.civora-ambient-pulse {
+  animation: civora-ambient-pulse 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

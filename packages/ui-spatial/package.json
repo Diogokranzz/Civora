@@ -1,0 +1,68 @@
+{
+  "name": "@civora/ui-spatial",
+  "version": "1.0.0",
+  "private": true,
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./motion": {
+      "types": "./dist/motion-primitives.d.ts",
+      "default": "./dist/motion-primitives.js"
+    },
+    "./kpi": {
+      "types": "./dist/glass-kpi-card.d.ts",
+      "default": "./dist/glass-kpi-card.js"
+    },
+    "./button": {
+      "types": "./dist/magnetic-button.d.ts",
+      "default": "./dist/magnetic-button.js"
+    },
+    "./empty": {
+      "types": "./dist/spatial-empty-state.d.ts",
+      "default": "./dist/spatial-empty-state.js"
+    },
+    "./cmdb": {
+      "types": "./dist/cmdb-topology-graph.d.ts",
+      "default": "./dist/cmdb-topology-graph.js"
+    },
+    "./math": {
+      "types": "./dist/topology-math.d.ts",
+      "default": "./dist/topology-math.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@civora/ui": "workspace:*",
+    "@react-three/drei": "^10.7.9",
+    "@react-three/fiber": "^9.8.2",
+    "framer-motion": "^12.43.0",
+    "lucide-react": "^0.488.0",
+    "three": "^0.187.0"
+  },
+  "peerDependencies": {
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0"
+  },
+  "devDependencies": {
+    "@civora/eslint-config": "workspace:*",
+    "@civora/tsconfig": "workspace:*",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@types/three": "^0.187.0",
+    "eslint": "^9.24.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
+  }
+}

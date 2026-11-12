@@ -1,0 +1,66 @@
+{
+  "info": {
+    "name": "Civora Enterprise ITSM API v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "organizationId", "value": "" },
+    { "key": "ticketId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/v1/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin.pro@civora.local\",\n  \"password\": \"Civora@2026!\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Tickets - Create (Idempotent)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "x-organization-id", "value": "{{organizationId}}" },
+          { "key": "Idempotency-Key", "value": "postman-demo-001" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": "{{baseUrl}}/api/v1/tickets",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Falha de autenticação SSO\",\n  \"description\": \"<p>Erro 502 no gateway.</p>\",\n  \"impact\": \"HIGH\",\n  \"urgency\": \"HIGH\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Tickets - List Server Paginated",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "x-organization-id", "value": "{{organizationId}}" }
+        ],
+        "url": "{{baseUrl}}/api/v1/tickets?page=1&pageSize=20"
+      }
+    },
+    {
+      "name": "Reports - Dashboard Metrics",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "x-organization-id", "value": "{{organizationId}}" }
+        ],
+        "url": "{{baseUrl}}/api/v1/reports/dashboard"
+      }
+    }
+  ]
+}
+

@@ -1,0 +1,182 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: civora-postgres
+    environment:
+      POSTGRES_USER: civora
+      POSTGRES_PASSWORD: civora_dev_password
+      POSTGRES_DB: civora
+    ports:
+      - "5432:5432"
+    volumes:
+      - civora_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civora -d civora"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: civora-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - civora_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    image: pgsty/silo:latest
+    container_name: civora-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: civora_minio
+      MINIO_ROOT_PASSWORD: civora_minio_secret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - civora_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: pgsty/silo:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - >
+        mc alias set civora http://minio:9000 civora_minio civora_minio_secret &&
+        mc mb -p civora/civora-attachments || true;
+        exit 0;
+
+  mailpit:
+    image: axllent/mailpit:v1.22
+    container_name: civora-mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.120.0
+    container_name: civora-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./infra/observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: civora-prometheus
+    volumes:
+      - ./infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infra/observability/prometheus-alerts.yml:/etc/prometheus/prometheus-alerts.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: civora-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: civora_grafana_dev
+    volumes:
+      - ./infra/observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: civora-api
+    environment:
+      NODE_ENV: development
+      APP_ENV: development
+      DATABASE_URL: postgresql://civora:civora_dev_password@postgres:5432/civora?schema=public
+      REDIS_URL: redis://redis:6379
+      API_PORT: 4000
+      API_PUBLIC_URL: http://localhost:4000
+      WEB_PUBLIC_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000
+      JWT_ACCESS_SECRET: civora-dev-access-secret-change-in-production-32chars-min
+      JWT_REFRESH_SECRET: civora-dev-refresh-secret-change-in-production-32chars-min
+      STORAGE_PROVIDER: s3
+      S3_ENDPOINT: http://minio:9000
+      S3_REGION: us-east-1
+      S3_BUCKET: civora-attachments
+      S3_ACCESS_KEY: civora_minio
+      S3_SECRET_KEY: civora_minio_secret
+      S3_FORCE_PATH_STYLE: "true"
+      EMAIL_PROVIDER: smtp
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      OTEL_ENABLED: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+      CIVORA_ALLOW_LOAD_TEST: "${CIVORA_ALLOW_LOAD_TEST:-true}"
+    restart: unless-stopped
+    command: >
+      sh -c "./apps/api/node_modules/.bin/prisma migrate deploy --schema=apps/api/prisma/schema.prisma && node apps/api/dist/src/main.js"
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    container_name: civora-worker
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://civora:civora_dev_password@postgres:5432/civora?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: civora-dev-access-secret-change-in-production-32chars-min
+      EMAIL_PROVIDER: smtp
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+        NEXT_PUBLIC_WS_URL: http://localhost:4000
+        NEXT_PUBLIC_OTEL_URL: http://localhost:4318
+    container_name: civora-web
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  civora_pg_data:
+  civora_redis_data:
+  civora_minio_data:
+
