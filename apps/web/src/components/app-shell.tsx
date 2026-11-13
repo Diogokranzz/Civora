@@ -162,16 +162,29 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
       <AmbientBackdrop />
       <CommandPalette />
 
+      {/* Mobile backdrop overlay */}
+      {mobileMenuOpen ? (
+        <div
+          role="presentation"
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-xs transition-opacity lg:hidden"
+        />
+      ) : null}
+
       <aside
         aria-label="Navegação principal"
         className={cn(
-          'fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-slate-200/85 bg-white transition-transform duration-200 ease-in-out dark:border-white/[0.08] dark:bg-[#0F172A] lg:static lg:h-full',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-200/85 bg-white transition-transform duration-200 ease-in-out dark:border-white/[0.08] dark:bg-[#0F172A] lg:static lg:z-30 lg:w-60 lg:h-full',
           collapsed ? 'lg:hidden' : 'lg:flex',
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         )}
       >
         <div className="flex h-12 shrink-0 items-center justify-between border-b border-slate-200/80 px-3 dark:border-white/[0.08]">
-          <Link href="/tickets" className="flex items-center gap-2.5 overflow-hidden">
+          <Link
+            href="/tickets"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2.5 overflow-hidden"
+          >
             <CivoraLogo size={32} />
             <div className="leading-tight">
               <span className="block text-sm font-bold tracking-tight text-slate-900 dark:text-slate-50">
@@ -182,15 +195,65 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
               </span>
             </div>
           </Link>
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            aria-label="Recolher menu lateral"
-            title="Fechar barra lateral"
-            className="hidden rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:inline-flex"
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-label="Recolher menu lateral"
+              title="Fechar barra lateral"
+              className="hidden rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:inline-flex"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Fechar menu no celular"
+              className="inline-flex rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 lg:hidden"
+            >
+              <PanelLeftClose className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile quick organization/unit selector inside drawer */}
+        <div className="border-b border-slate-200/70 p-2 lg:hidden dark:border-slate-800/80 space-y-1.5">
+          {user.memberships.length > 1 ? (
+            <select
+              aria-label="Selecionar organização"
+              value={activeOrganizationId ?? ''}
+              onChange={(e) => void handleOrgSwitch(e.target.value)}
+              className="w-full h-8 rounded-md border border-slate-300 bg-white px-2 text-xs font-medium dark:border-slate-700 dark:bg-slate-950"
+            >
+              {user.memberships.map((m) => (
+                <option key={m.organizationId} value={m.organizationId}>
+                  {m.organizationName}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
+              {activeMembership?.organizationName}
+            </div>
+          )}
+
+          <select
+            aria-label="Selecionar unidade operacional"
+            value={activeUnitId ?? ''}
+            onChange={(e) => {
+              setActiveUnitId(e.target.value || null);
+              void queryClient.invalidateQueries({ queryKey: ['tickets'] });
+              void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+            }}
+            className="w-full h-8 rounded-md border border-slate-300 bg-white px-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
           >
-            <PanelLeftClose className="h-4 w-4" />
-          </button>
+            <option value="">Todas as unidades</option>
+            {(units ?? []).map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.code} — {u.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto p-2">
@@ -204,7 +267,7 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
                 onClick={() => setMobileMenuOpen(false)}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors',
+                  'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors',
                   active
                     ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
                     : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
@@ -217,7 +280,7 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
           })}
         </nav>
 
-        <div className="shrink-0 border-t border-slate-200 p-2 dark:border-slate-800">
+        <div className="shrink-0 border-t border-slate-200 p-2 dark:border-slate-800 pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)]">
           <div className="mb-1.5 rounded-md bg-slate-100 px-2.5 py-1.5 text-xs dark:bg-slate-800">
             <p className="truncate font-semibold">{user.name}</p>
             <p className="truncate text-[11px] text-slate-600 dark:text-slate-400">
@@ -228,7 +291,7 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
             variant="ghost"
             size="sm"
             onClick={handleLogout}
-            className="h-8 w-full justify-start text-slate-700 dark:text-slate-300"
+            className="h-9 w-full justify-start text-slate-700 dark:text-slate-300"
           >
             <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span>Sair</span>
@@ -410,7 +473,81 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex flex-1 flex-col p-3 sm:p-4 lg:min-h-0 lg:overflow-hidden">{children}</main>
+        <main className="flex flex-1 flex-col p-3 pb-24 sm:p-4 lg:pb-4 lg:min-h-0 lg:overflow-hidden">
+          {children}
+        </main>
+
+        {/* Mobile Bottom Navigation Bar (iOS / Android Native Experience) */}
+        <nav
+          aria-label="Navegação rápida mobile"
+          className="fixed inset-x-0 bottom-0 z-30 flex h-14 items-center justify-around border-t border-slate-200/90 bg-white/95 px-2 pb-[env(safe-area-inset-bottom,0px)] shadow-lg backdrop-blur-md dark:border-white/[0.08] dark:bg-[#0F172A]/95 lg:hidden"
+        >
+          <Link
+            href="/tickets"
+            className={cn(
+              'flex flex-col items-center justify-center gap-0.5 py-1 px-3 text-[11px] font-medium transition-colors',
+              pathname === '/tickets' || pathname.startsWith('/tickets/')
+                ? 'text-blue-600 dark:text-sky-400 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <Ticket className="h-4 w-4" />
+            <span>Chamados</span>
+          </Link>
+
+          <Link
+            href="/sla"
+            className={cn(
+              'flex flex-col items-center justify-center gap-0.5 py-1 px-3 text-[11px] font-medium transition-colors',
+              pathname === '/sla' || pathname.startsWith('/sla/')
+                ? 'text-blue-600 dark:text-sky-400 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <Clock className="h-4 w-4" />
+            <span>SLA</span>
+          </Link>
+
+          <Link
+            href="/itsm"
+            className={cn(
+              'flex flex-col items-center justify-center gap-0.5 py-1 px-3 text-[11px] font-medium transition-colors',
+              pathname === '/itsm' || pathname.startsWith('/itsm/')
+                ? 'text-blue-600 dark:text-sky-400 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <HardDrive className="h-4 w-4" />
+            <span>Ativos</span>
+          </Link>
+
+          <Link
+            href="/audit"
+            className={cn(
+              'flex flex-col items-center justify-center gap-0.5 py-1 px-3 text-[11px] font-medium transition-colors',
+              pathname === '/audit' || pathname.startsWith('/audit/')
+                ? 'text-blue-600 dark:text-sky-400 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <ShieldCheck className="h-4 w-4" />
+            <span>Auditoria</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className={cn(
+              'flex flex-col items-center justify-center gap-0.5 py-1 px-3 text-[11px] font-medium transition-colors',
+              mobileMenuOpen
+                ? 'text-blue-600 dark:text-sky-400 font-semibold'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <Menu className="h-4 w-4" />
+            <span>Menu</span>
+          </button>
+        </nav>
       </div>
     </div>
   );

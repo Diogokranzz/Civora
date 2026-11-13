@@ -89,7 +89,7 @@ export default function AuditLgpdPage() {
             ) : (
               <>
                 <div className="flex-1 overflow-auto lg:min-h-0">
-                  <table className="w-full text-left text-xs">
+                  <table className="w-full text-left text-xs min-w-[550px]">
                     <thead className="sticky top-0 bg-white dark:bg-slate-900">
                       <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800">
                         <th className="py-2">Data/Hora</th>

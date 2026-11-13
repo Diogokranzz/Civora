@@ -254,7 +254,7 @@ export default function ItsmAssetsPage() {
 
         <div className="grid flex-1 gap-4 lg:min-h-0 xl:grid-cols-12">
           <div className="flex flex-col gap-3 lg:min-h-0 xl:col-span-7">
-            <div className="min-h-[240px] flex-[1.15] lg:min-h-0">
+            <div className="h-[280px] sm:h-[340px] lg:h-full min-h-[260px] flex-[1.15] lg:min-h-0">
               {assets.length === 0 ? (
                 <SpatialEmptyState
                   emblem="cmdb"
@@ -302,7 +302,7 @@ export default function ItsmAssetsPage() {
               <CardContent className="flex flex-1 flex-col gap-3 overflow-hidden pt-0 lg:min-h-0">
                 {assets.length > 0 ? (
                   <div className="flex-1 overflow-auto lg:min-h-0">
-                    <table className="w-full text-left text-xs">
+                    <table className="w-full text-left text-xs min-w-[520px]">
                       <thead className="sticky top-0 bg-white dark:bg-slate-900">
                         <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-300">
                           <th className="py-1.5">Tag</th>

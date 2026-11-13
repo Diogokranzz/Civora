@@ -224,7 +224,7 @@ export default function LoginPage() {
       <div className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 items-center gap-5 px-5 py-2 sm:px-8 lg:grid-cols-12 lg:gap-10">
         <StaggerSection
           aria-label="Apresentação da plataforma Civora"
-          className="space-y-3.5 lg:col-span-7"
+          className="order-2 space-y-3.5 lg:order-1 lg:col-span-7"
         >
           <StaggerDiv asItem className="space-y-2.5">
             <span className="inline-flex items-center gap-2 rounded-full border border-blue-300/80 bg-blue-50/90 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300">
@@ -308,7 +308,7 @@ export default function LoginPage() {
 
         <StaggerSection
           aria-label="Autenticação corporativa"
-          className="lg:col-span-5"
+          className="order-1 lg:order-2 lg:col-span-5"
         >
           <div className="relative overflow-hidden rounded-2xl border border-slate-200/95 bg-white shadow-[0_2px_6px_-1px_rgba(15,23,42,0.06),0_20px_48px_-14px_rgba(15,23,42,0.16)] ring-1 ring-slate-900/[0.04] dark:border-white/[0.1] dark:bg-[#0B1326] dark:shadow-[0_24px_60px_-20px_rgba(2,6,23,0.95)] dark:ring-white/[0.04]">
             <div

@@ -315,7 +315,7 @@ export default function TicketDetailPageClient({ idOverride }: { idOverride?: st
             </Card>
 
             <Card className="flex flex-1 flex-col overflow-hidden lg:min-h-0">
-              <div className="flex shrink-0 border-b border-slate-200 px-4 pt-1.5 dark:border-slate-800">
+              <div className="flex shrink-0 border-b border-slate-200 px-2 sm:px-4 pt-1.5 dark:border-slate-800 overflow-x-auto no-scrollbar whitespace-nowrap">
                 {(
                   [
                     ['comments', `Interações (${ticket.comments.length})`],
