@@ -1,5 +1,5 @@
 {
-  "extends": "@civora/tsconfig/library.json",
+  "extends": "../tsconfig/library.json",
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist"

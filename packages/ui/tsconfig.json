@@ -1,5 +1,5 @@
 {
-  "extends": "@civora/tsconfig/base.json",
+  "extends": "../tsconfig/base.json",
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "jsx": "react-jsx",

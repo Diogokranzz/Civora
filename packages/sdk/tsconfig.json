@@ -1,5 +1,5 @@
 {
-  "extends": "@civora/tsconfig/library.json",
+  "extends": "../tsconfig/library.json",
   "compilerOptions": {
     "lib": ["ES2022", "DOM"],
     "rootDir": "src",
