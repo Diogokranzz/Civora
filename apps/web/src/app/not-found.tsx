@@ -5,8 +5,30 @@ import Link from 'next/link';
 import { Home, LifeBuoy, Ticket } from 'lucide-react';
 import { Button } from '@civora/ui';
 import { AmbientBackdrop, CivoraLogo } from '../components/spatial';
+import TicketDetailPageClient from './tickets/[id]/ticket-detail-client';
 
 export default function NotFound() {
+  const [ticketId, setTicketId] = React.useState<string | null>(null);
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      const match = pathname.match(/\/tickets\/([^/?#]+)/i);
+      if (match && match[1]) {
+        const id = decodeURIComponent(match[1]);
+        if (id && id !== 'tickets') {
+          setTicketId(id);
+        }
+      }
+    }
+  }, []);
+
+  if (isClient && ticketId) {
+    return <TicketDetailPageClient idOverride={ticketId} />;
+  }
+
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-slate-50 px-4 text-center dark:bg-[#020617]">
       <AmbientBackdrop />

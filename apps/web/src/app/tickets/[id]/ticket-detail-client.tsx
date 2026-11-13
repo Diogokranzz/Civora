@@ -16,9 +16,10 @@ import {
   Sparkles,
   ThumbsDown,
   ThumbsUp,
+  Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Badge,
   Button,
@@ -26,7 +27,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  ErrorState,
   ForbiddenState,
   Input,
   Label,
@@ -42,6 +42,7 @@ import { useCivoraStore } from '../../../lib/store';
 
 export default function TicketDetailPageClient({ idOverride }: { idOverride?: string } = {}) {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const id = idOverride || params?.id || 'CIV-2026-000001';
   const queryClient = useQueryClient();
   const user = useCivoraStore((s) => s.user);
@@ -161,6 +162,15 @@ export default function TicketDetailPageClient({ idOverride }: { idOverride?: st
     onError: (err) => setActionError(err instanceof Error ? err.message : 'Falha na assistência de IA'),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => civoraApi.deleteTicket(ticketQuery.data?.id || id),
+    onSuccess: () => {
+      invalidate();
+      router.push('/tickets');
+    },
+    onError: (err) => setActionError(err instanceof Error ? err.message : 'Não foi possível apagar o chamado.'),
+  });
+
   const ticket = ticketQuery.data;
 
   if (ticketQuery.isLoading) {
@@ -177,14 +187,27 @@ export default function TicketDetailPageClient({ idOverride }: { idOverride?: st
         {ticketQuery.error instanceof ApiClientError && ticketQuery.error.status === 403 ? (
           <ForbiddenState />
         ) : (
-          <ErrorState
-            description={
-              ticketQuery.error instanceof Error
+          <div className="mx-auto flex w-full max-w-lg flex-col items-center justify-center py-16 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+              <ShieldAlert className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <h2 className="mt-4 text-lg font-bold text-slate-900 dark:text-slate-100">
+              Chamado não localizado
+            </h2>
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+              {ticketQuery.error instanceof Error
                 ? ticketQuery.error.message
-                : 'Não foi possível carregar o chamado.'
-            }
-            onRetry={() => void ticketQuery.refetch()}
-          />
+                : 'O chamado solicitado não foi encontrado no sistema ou foi removido.'}
+            </p>
+            <div className="mt-6 flex items-center gap-3">
+              <Link href="/tickets">
+                <Button size="sm">Voltar para Central de Chamados</Button>
+              </Link>
+              <Button size="sm" variant="outline" onClick={() => void ticketQuery.refetch()}>
+                Tentar Novamente
+              </Button>
+            </div>
+          </div>
         )}
       </AppShell>
     );
@@ -236,12 +259,27 @@ export default function TicketDetailPageClient({ idOverride }: { idOverride?: st
                 key={target}
                 size="sm"
                 variant={target === 'RESOLVED' ? 'default' : target === 'CANCELED' ? 'destructive' : 'outline'}
-                disabled={transitionMutation.isPending}
+                disabled={transitionMutation.isPending || deleteMutation.isPending}
                 onClick={() => handleTransitionClick(target)}
               >
                 {target}
               </Button>
             ))}
+
+            <Button
+              size="sm"
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (window.confirm(`Tem certeza que deseja apagar o chamado ${ticket.publicNumber}?`)) {
+                  deleteMutation.mutate();
+                }
+              }}
+              className="gap-1.5"
+            >
+              <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>{deleteMutation.isPending ? 'Apagando...' : 'Apagar'}</span>
+            </Button>
           </div>
         </div>
 

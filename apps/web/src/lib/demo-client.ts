@@ -384,7 +384,7 @@ export async function handleDemoRequest<T>(
 
     const seq = state.nextTicketSeq++;
     const publicNumber = `CIV-2026-${String(seq).padStart(6, '0')}`;
-    const id = `ticket-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+    const id = publicNumber;
     const nowIso = new Date().toISOString();
 
     const newTicket: TicketDetailDto = {
@@ -549,8 +549,9 @@ export async function handleDemoRequest<T>(
 
   const timelineMatch = normalizedPath.match(/^\/tickets\/([^/]+)\/timeline$/);
   if (timelineMatch && method === 'GET') {
-    const ticketId = timelineMatch[1]!;
-    const events = state.timelines[ticketId] ?? [
+    const ticketId = decodeURIComponent(timelineMatch[1]!);
+    const ticket = state.tickets.find((t) => t.id === ticketId || t.publicNumber === ticketId);
+    const events = (ticket ? (state.timelines[ticket.id] ?? state.timelines[ticket.publicNumber]) : null) ?? state.timelines[ticketId] ?? [
       {
         id: `tl-base-${ticketId}`,
         ticketId,
@@ -571,8 +572,8 @@ export async function handleDemoRequest<T>(
 
   const transitionMatch = normalizedPath.match(/^\/tickets\/([^/]+)\/transition$/);
   if (transitionMatch && method === 'POST') {
-    const ticketId = transitionMatch[1]!;
-    const ticket = state.tickets.find((t) => t.id === ticketId);
+    const ticketId = decodeURIComponent(transitionMatch[1]!);
+    const ticket = state.tickets.find((t) => t.id === ticketId || t.publicNumber === ticketId);
     if (!ticket) throw makeProblemError(404, 'Not Found', 'Chamado não encontrado.', path);
 
     const targetStatus = body.targetStatus as TicketStatus;
@@ -614,8 +615,8 @@ export async function handleDemoRequest<T>(
 
   const assignMatch = normalizedPath.match(/^\/tickets\/([^/]+)\/assign$/);
   if (assignMatch && method === 'POST') {
-    const ticketId = assignMatch[1]!;
-    const ticket = state.tickets.find((t) => t.id === ticketId);
+    const ticketId = decodeURIComponent(assignMatch[1]!);
+    const ticket = state.tickets.find((t) => t.id === ticketId || t.publicNumber === ticketId);
     if (!ticket) throw makeProblemError(404, 'Not Found', 'Chamado não encontrado.', path);
 
     if (body.assigneeId !== undefined) {
@@ -636,8 +637,8 @@ export async function handleDemoRequest<T>(
 
   const overrideMatch = normalizedPath.match(/^\/tickets\/([^/]+)\/priority-override$/);
   if (overrideMatch && method === 'POST') {
-    const ticketId = overrideMatch[1]!;
-    const ticket = state.tickets.find((t) => t.id === ticketId);
+    const ticketId = decodeURIComponent(overrideMatch[1]!);
+    const ticket = state.tickets.find((t) => t.id === ticketId || t.publicNumber === ticketId);
     if (!ticket) throw makeProblemError(404, 'Not Found', 'Chamado não encontrado.', path);
 
     ticket.priority = body.priority as PriorityLevel;
@@ -653,8 +654,8 @@ export async function handleDemoRequest<T>(
 
   const commentsMatch = normalizedPath.match(/^\/tickets\/([^/]+)\/comments$/);
   if (commentsMatch && method === 'POST') {
-    const ticketId = commentsMatch[1]!;
-    const ticket = state.tickets.find((t) => t.id === ticketId);
+    const ticketId = decodeURIComponent(commentsMatch[1]!);
+    const ticket = state.tickets.find((t) => t.id === ticketId || t.publicNumber === ticketId);
     if (!ticket) throw makeProblemError(404, 'Not Found', 'Chamado não encontrado.', path);
 
     const comment = {
@@ -674,8 +675,8 @@ export async function handleDemoRequest<T>(
 
   const csatMatch = normalizedPath.match(/^\/tickets\/([^/]+)\/csat$/);
   if (csatMatch && method === 'POST') {
-    const ticketId = csatMatch[1]!;
-    const ticket = state.tickets.find((t) => t.id === ticketId);
+    const ticketId = decodeURIComponent(csatMatch[1]!);
+    const ticket = state.tickets.find((t) => t.id === ticketId || t.publicNumber === ticketId);
     if (!ticket) throw makeProblemError(404, 'Not Found', 'Chamado não encontrado.', path);
 
     ticket.csatScore = Math.max(1, Math.min(5, Number(body.score || 5)));
@@ -689,8 +690,8 @@ export async function handleDemoRequest<T>(
 
   const attachmentsMatch = normalizedPath.match(/^\/tickets\/([^/]+)\/attachments$/);
   if (attachmentsMatch && method === 'POST') {
-    const ticketId = attachmentsMatch[1]!;
-    const ticket = state.tickets.find((t) => t.id === ticketId);
+    const ticketId = decodeURIComponent(attachmentsMatch[1]!);
+    const ticket = state.tickets.find((t) => t.id === ticketId || t.publicNumber === ticketId);
     if (!ticket) throw makeProblemError(404, 'Not Found', 'Chamado não encontrado.', path);
 
     const att = {
@@ -709,8 +710,8 @@ export async function handleDemoRequest<T>(
 
   const aiAssistMatch = normalizedPath.match(/^\/ai\/tickets\/([^/]+)\/assist$/);
   if (aiAssistMatch && method === 'POST') {
-    const ticketId = aiAssistMatch[1]!;
-    const ticket = state.tickets.find((t) => t.id === ticketId);
+    const ticketId = decodeURIComponent(aiAssistMatch[1]!);
+    const ticket = state.tickets.find((t) => t.id === ticketId || t.publicNumber === ticketId);
     const featureType = String(body.featureType ?? 'SUGGEST_REPLY');
 
     const suggestion: AiSuggestionDto = {
