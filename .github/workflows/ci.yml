@@ -10,13 +10,13 @@ jobs:
   quality-and-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 12.9.1
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -47,7 +47,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: civora-dist
           path: |
@@ -62,7 +62,7 @@ jobs:
       matrix:
         service: [api, worker, web]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build Docker Image (${{ matrix.service }})
         run: docker build -f apps/${{ matrix.service }}/Dockerfile -t civora-${{ matrix.service }}:${{ github.sha }} .
@@ -72,5 +72,4 @@ jobs:
         with:
           image-ref: civora-${{ matrix.service }}:${{ github.sha }}
           severity: CRITICAL,HIGH
-          exit-code: "0"
-
+          exit-code: '0'
