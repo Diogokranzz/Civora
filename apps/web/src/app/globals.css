@@ -5,10 +5,20 @@
 @layer base {
   html {
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
   }
 
   body {
     @apply bg-slate-50 text-slate-900 antialiased dark:bg-[#020617] dark:text-slate-100;
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     -webkit-tap-highlight-color: transparent;
   }

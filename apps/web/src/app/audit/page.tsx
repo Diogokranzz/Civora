@@ -44,28 +44,29 @@ export default function AuditLgpdPage() {
 
   return (
     <AppShell breadcrumb="Auditoria & LGPD">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 lg:h-full lg:min-h-0">
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Trilha de Auditoria Imutável & LGPD</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              Registro completo de autor, ação, recurso, estado anterior/posterior, IP, correlationId e direitos do titular.
+      <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+        <div className="flex shrink-0 items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-xl font-bold tracking-tight truncate">Trilha de Auditoria & LGPD</h1>
+            <p className="hidden sm:block text-xs text-slate-600 dark:text-slate-400">
+              Registro completo de autor, ação, recurso, IP, correlationId e direitos do titular.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => void handleSelfExport()}>
-            <Download className="h-4 w-4" aria-hidden="true" />
-            Exportar Meus Dados (LGPD)
+          <Button variant="outline" size="sm" className="h-8 text-xs shrink-0" onClick={() => void handleSelfExport()}>
+            <Download className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">Exportar Meus Dados (LGPD)</span>
+            <span className="sm:hidden">Exportar</span>
           </Button>
         </div>
 
-        <Card className="flex flex-1 flex-col overflow-hidden lg:min-h-0">
-          <CardHeader className="shrink-0 pb-3">
+        <Card className="flex flex-1 min-h-0 flex-col overflow-hidden">
+          <CardHeader className="shrink-0 py-2.5">
             <CardTitle className="flex items-center gap-2 text-sm">
               <ShieldCheck className="h-4 w-4 text-blue-600" aria-hidden="true" />
               Eventos Auditados da Organização
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-1 flex-col overflow-hidden lg:min-h-0">
+          <CardContent className="flex flex-1 min-h-0 flex-col overflow-hidden pt-0">
             {logsQuery.isLoading ? (
               <TableSkeleton rows={6} />
             ) : logsQuery.isError ? (
@@ -88,7 +89,7 @@ export default function AuditLgpdPage() {
               />
             ) : (
               <>
-                <div className="flex-1 overflow-auto lg:min-h-0">
+                <div className="flex-1 min-h-0 overflow-auto">
                   <table className="w-full text-left text-xs min-w-[550px]">
                     <thead className="sticky top-0 bg-white dark:bg-slate-900">
                       <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800">

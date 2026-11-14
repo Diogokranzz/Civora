@@ -18,6 +18,7 @@ import {
   PriorityBadge,
   Textarea,
   TicketStatusBadge,
+  cn,
 } from '@civora/ui';
 import { AppShell } from '../../components/app-shell';
 import { civoraApi } from '../../lib/api';
@@ -29,6 +30,7 @@ export default function RequesterPortalPage() {
   const activeOrganizationId = useCivoraStore((s) => s.activeOrganizationId);
 
   const [search, setSearch] = React.useState('');
+  const [mobilePortalTab, setMobilePortalTab] = React.useState<'form' | 'catalog' | 'tickets'>('form');
   const [selectedServiceId, setSelectedServiceId] = React.useState<string | null>(null);
   const [title, setTitle] = React.useState('');
   const [description, setDescription] = React.useState('');
@@ -97,7 +99,7 @@ export default function RequesterPortalPage() {
 
   return (
     <AppShell breadcrumb="Portal do Solicitante">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 lg:h-full lg:min-h-0">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
         {/* Major Incidents Banner */}
         {(majorIncidentsQuery.data ?? []).length > 0 ? (
           <div
@@ -121,7 +123,7 @@ export default function RequesterPortalPage() {
 
         {/* Compact Top Search Band */}
         <Card className="shrink-0">
-          <CardContent className="p-3 sm:p-4">
+          <CardContent className="p-2.5 sm:p-3">
             <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <h1 className="flex items-center gap-2 text-base font-bold text-slate-900 dark:text-slate-50">
@@ -152,10 +154,56 @@ export default function RequesterPortalPage() {
           </CardContent>
         </Card>
 
+        {/* Mobile Portal Tab Switcher */}
+        <div role="tablist" aria-label="Abas do Portal Solicitante" className="flex lg:hidden shrink-0 rounded-xl border border-slate-200/90 bg-white p-1 shadow-xs dark:border-white/[0.08] dark:bg-[#0F172A]">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobilePortalTab === 'form'}
+            onClick={() => setMobilePortalTab('form')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobilePortalTab === 'form'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Nova Solicitação</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobilePortalTab === 'catalog'}
+            onClick={() => setMobilePortalTab('catalog')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobilePortalTab === 'catalog'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Catálogo</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobilePortalTab === 'tickets'}
+            onClick={() => setMobilePortalTab('tickets')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobilePortalTab === 'tickets'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Meus Chamados ({myTickets.length})</span>
+          </button>
+        </div>
+
         {/* 3-Column Single-Screen Workspace */}
-        <div className="grid flex-1 gap-4 lg:min-h-0 lg:grid-cols-12">
+        <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-12 gap-3 overflow-hidden">
           {/* Column 1: Service Catalog */}
-          <Card className="flex flex-col overflow-hidden lg:col-span-4 lg:h-full lg:min-h-0">
+          <Card className={cn("flex flex-1 min-h-0 flex-col overflow-hidden lg:col-span-4", mobilePortalTab !== 'catalog' && 'hidden lg:flex')}>
             <CardHeader className="shrink-0 border-b border-slate-100 py-3 dark:border-slate-800/80">
               <CardTitle className="text-sm">Catálogo de Serviços</CardTitle>
               <CardDescription className="text-[11px]">
@@ -195,6 +243,7 @@ export default function RequesterPortalPage() {
                         onClick={() => {
                           setSelectedServiceId(svc.id);
                           setTitle(svc.name);
+                          setMobilePortalTab('form');
                         }}
                       >
                         Solicitar Serviço
@@ -207,7 +256,7 @@ export default function RequesterPortalPage() {
           </Card>
 
           {/* Column 2: Dynamic Request Form */}
-          <Card className="flex flex-col overflow-hidden lg:col-span-4 lg:h-full lg:min-h-0">
+          <Card className={cn("flex flex-1 min-h-0 flex-col overflow-hidden lg:col-span-4", mobilePortalTab !== 'form' && 'hidden lg:flex')}>
             <CardHeader className="shrink-0 border-b border-slate-100 py-3 dark:border-slate-800/80">
               <CardTitle className="text-sm">
                 {selectedService

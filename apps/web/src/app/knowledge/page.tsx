@@ -16,6 +16,7 @@ import {
   Label,
   TableSkeleton,
   Textarea,
+  cn,
 } from '@civora/ui';
 import { AppShell } from '../../components/app-shell';
 import { civoraApi } from '../../lib/api';
@@ -83,12 +84,12 @@ export default function KnowledgeBasePage() {
 
   return (
     <AppShell breadcrumb="Base de Conhecimento">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 lg:h-full lg:min-h-0">
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Base de Conhecimento & Runbooks</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              Busca textual PostgreSQL FTS com versionamento, revisão e controle de visibilidade.
+      <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+        <div className="flex shrink-0 items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-xl font-bold tracking-tight truncate">Base de Conhecimento</h1>
+            <p className="hidden sm:block text-xs text-slate-600 dark:text-slate-400">
+              Busca PostgreSQL FTS com versionamento e controle de visibilidade.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -110,8 +111,8 @@ export default function KnowledgeBasePage() {
           </div>
         </div>
 
-        <div className="grid flex-1 gap-4 lg:min-h-0 lg:grid-cols-5">
-          <div className="space-y-2 overflow-y-auto pr-1 lg:col-span-2 lg:min-h-0">
+        <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-5 gap-3 overflow-hidden">
+          <div className={cn("space-y-2 overflow-y-auto pr-1 lg:col-span-2 flex-1 min-h-0", selectedId && "hidden lg:block")}>
             {listQuery.isLoading ? (
               <TableSkeleton rows={4} />
             ) : articles.length === 0 ? (

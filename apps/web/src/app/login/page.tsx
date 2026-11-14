@@ -188,7 +188,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col justify-between overflow-x-hidden bg-slate-100 text-slate-900 dark:bg-[#020617] dark:text-slate-100 lg:h-dvh lg:overflow-hidden">
+    <main className="relative flex h-dvh max-h-dvh flex-col justify-between overflow-hidden bg-slate-100 text-slate-900 dark:bg-[#020617] dark:text-slate-100">
       <AmbientBackdrop />
 
       <header className="relative z-10 mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between px-5 pt-3 sm:px-8 sm:pt-4">
@@ -221,10 +221,10 @@ export default function LoginPage() {
         </div>
       </header>
 
-      <div className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 items-center gap-5 px-5 py-2 sm:px-8 lg:grid-cols-12 lg:gap-10">
+      <div className="relative z-10 mx-auto grid w-full max-w-6xl flex-1 min-h-0 items-center gap-5 px-4 py-2 sm:px-8 lg:grid-cols-12 lg:gap-10 overflow-hidden">
         <StaggerSection
           aria-label="Apresentação da plataforma Civora"
-          className="order-2 space-y-3.5 lg:order-1 lg:col-span-7"
+          className="hidden lg:block order-2 space-y-3.5 lg:order-1 lg:col-span-7"
         >
           <StaggerDiv asItem className="space-y-2.5">
             <span className="inline-flex items-center gap-2 rounded-full border border-blue-300/80 bg-blue-50/90 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-300">
@@ -308,7 +308,7 @@ export default function LoginPage() {
 
         <StaggerSection
           aria-label="Autenticação corporativa"
-          className="order-1 lg:order-2 lg:col-span-5"
+          className="order-1 lg:order-2 lg:col-span-5 w-full max-w-md mx-auto max-h-full overflow-y-auto no-scrollbar"
         >
           <div className="relative overflow-hidden rounded-2xl border border-slate-200/95 bg-white shadow-[0_2px_6px_-1px_rgba(15,23,42,0.06),0_20px_48px_-14px_rgba(15,23,42,0.16)] ring-1 ring-slate-900/[0.04] dark:border-white/[0.1] dark:bg-[#0B1326] dark:shadow-[0_24px_60px_-20px_rgba(2,6,23,0.95)] dark:ring-white/[0.04]">
             <div
@@ -710,7 +710,7 @@ export default function LoginPage() {
         </StaggerSection>
       </div>
 
-      <footer className="relative z-10 mx-auto flex w-full max-w-6xl shrink-0 flex-wrap items-center justify-between gap-2 px-5 pb-3 pt-1 text-[11px] text-slate-500 sm:px-8 dark:text-slate-400">
+      <footer className="relative z-10 mx-auto hidden sm:flex w-full max-w-6xl shrink-0 flex-wrap items-center justify-between gap-2 px-5 pb-3 pt-1 text-[11px] text-slate-500 sm:px-8 dark:text-slate-400">
         <span>Civora Enterprise ITSM • Modular Monolith Architecture</span>
         <span>Multi-Tenant • LGPD Audit • SLA Calendar Engine</span>
       </footer>

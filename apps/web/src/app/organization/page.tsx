@@ -88,7 +88,7 @@ export default function OrganizationPage() {
 
   return (
     <AppShell breadcrumb="Departamentos & Equipes">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 lg:h-full lg:min-h-0">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
         <header className="flex shrink-0 flex-wrap items-center justify-between gap-2">
           <div>
             <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ export default function OrganizationPage() {
             </div>
 
             {activeView === 'structure' || !canReadUsers ? (
-              <div className="grid flex-1 grid-cols-1 gap-4 lg:min-h-0 lg:grid-cols-2">
+              <div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 gap-3 lg:grid-cols-2">
               <UnitsDepartmentsSection
                 units={units}
                 departments={departments}
@@ -229,7 +229,7 @@ export default function OrganizationPage() {
               />
             </div>
             ) : (
-              <div className="flex-1 lg:min-h-0">
+              <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
                 <RbacTable
                 members={members}
                 units={units}

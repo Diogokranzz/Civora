@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, EmptyState, ErrorState, TableSkeleton } from '@civora/ui';
+import { Card, CardContent, CardHeader, CardTitle, EmptyState, ErrorState, TableSkeleton, cn } from '@civora/ui';
 import { AppShell } from '../../components/app-shell';
 import { civoraApi } from '../../lib/api';
 import { useCivoraStore } from '../../lib/store';
@@ -23,6 +23,7 @@ export default function ReportsPage() {
   const activeOrganizationId = useCivoraStore((s) => s.activeOrganizationId);
   const activeUnitId = useCivoraStore((s) => s.activeUnitId);
   const [days, setDays] = React.useState(14);
+  const [mobileReportTab, setMobileReportTab] = React.useState<'volume' | 'dept' | 'priority'>('volume');
 
   const metricsQuery = useQuery({
     queryKey: ['reports-dashboard', activeOrganizationId, activeUnitId, days],
@@ -34,12 +35,12 @@ export default function ReportsPage() {
 
   return (
     <AppShell breadcrumb="Relatórios">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 lg:h-full lg:min-h-0">
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Relatórios & Indicadores Gerenciais</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
-              Métricas operacionais reais de SLA, MTTR, MTTA, backlog, reabertura e satisfação.
+      <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+        <div className="flex shrink-0 items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-xl font-bold tracking-tight truncate">Relatórios & Indicadores</h1>
+            <p className="hidden sm:block text-xs text-slate-600 dark:text-slate-400">
+              Métricas operacionais reais de SLA, MTTR, MTTA, backlog e satisfação.
             </p>
           </div>
           <select
@@ -67,7 +68,73 @@ export default function ReportsPage() {
           />
         ) : m ? (
           <>
-            <div className="grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {/* Mobile Compact KPI Ribbon */}
+            <div className="flex sm:hidden overflow-x-auto no-scrollbar gap-1.5 shrink-0 py-0.5">
+              <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                <span>SLA:</span>
+                <span className="font-bold text-emerald-600">{m.slaComplianceRate}%</span>
+              </div>
+              <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                <span>MTTR:</span>
+                <span className="font-bold">{m.mttrMinutes}m</span>
+              </div>
+              <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                <span>MTTA:</span>
+                <span className="font-bold">{m.mttaMinutes}m</span>
+              </div>
+              <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+                <span>Reabertura:</span>
+                <span className="font-bold">{m.reopenRate}%</span>
+              </div>
+            </div>
+
+            {/* Mobile Chart Tab Switcher */}
+            <div role="tablist" aria-label="Visualizações de Gráficos Mobile" className="flex lg:hidden shrink-0 rounded-xl border border-slate-200/90 bg-white p-1 shadow-xs dark:border-white/[0.08] dark:bg-[#0F172A]">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mobileReportTab === 'volume'}
+                onClick={() => setMobileReportTab('volume')}
+                className={cn(
+                  'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+                  mobileReportTab === 'volume'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+                )}
+              >
+                <span>Volume</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mobileReportTab === 'dept'}
+                onClick={() => setMobileReportTab('dept')}
+                className={cn(
+                  'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+                  mobileReportTab === 'dept'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+                )}
+              >
+                <span>Departamentos</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mobileReportTab === 'priority'}
+                onClick={() => setMobileReportTab('priority')}
+                className={cn(
+                  'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+                  mobileReportTab === 'priority'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+                )}
+              >
+                <span>Prioridades</span>
+              </button>
+            </div>
+
+            <div className="hidden sm:grid shrink-0 gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <Card>
                 <CardContent className="p-3">
                   <p className="text-[11px] text-slate-500">MTTA Médio</p>
@@ -104,8 +171,8 @@ export default function ReportsPage() {
               </Card>
             </div>
 
-            <div className="grid flex-1 gap-4 lg:min-h-0 lg:grid-cols-3">
-              <Card className="flex flex-col lg:min-h-0">
+            <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-3 gap-3 overflow-hidden">
+              <Card className={cn("flex flex-1 min-h-0 flex-col overflow-hidden", mobileReportTab !== 'volume' && 'hidden lg:flex')}>
                 <CardHeader className="shrink-0 pb-2">
                   <CardTitle className="text-sm">Volume por Período (Abertos vs Resolvidos)</CardTitle>
                 </CardHeader>

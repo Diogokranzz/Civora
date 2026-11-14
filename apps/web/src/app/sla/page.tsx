@@ -15,6 +15,7 @@ import {
   PriorityBadge,
   SlaBadge,
   TableSkeleton,
+  cn,
 } from '@civora/ui';
 import { AppShell } from '../../components/app-shell';
 import { civoraApi } from '../../lib/api';
@@ -25,6 +26,7 @@ const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 export default function SlaPanelPage() {
   const user = useCivoraStore((s) => s.user);
   const activeOrganizationId = useCivoraStore((s) => s.activeOrganizationId);
+  const [mobileSlaTab, setMobileSlaTab] = React.useState<'atRisk' | 'policies' | 'calendars'>('atRisk');
 
   const calendarsQuery = useQuery({
     queryKey: ['sla-calendars', activeOrganizationId],
@@ -46,44 +48,78 @@ export default function SlaPanelPage() {
 
   return (
     <AppShell breadcrumb="Painel de SLA">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 lg:h-full lg:min-h-0">
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Painel de SLA & Calendários Comerciais</h1>
-            <p className="text-xs text-slate-600 dark:text-slate-400">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+        <div className="flex shrink-0 items-center justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-xl font-bold tracking-tight truncate">Painel de SLA</h1>
+            <p className="hidden sm:block text-xs text-slate-600 dark:text-slate-400">
               Metas de primeira resposta, atualização, resolução, feriados e escalonamento progressivo.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-2.5">
-            <Card>
-              <CardContent className="px-3.5 py-2">
-                <p className="text-[11px] font-medium text-slate-500">Cumprimento SLA</p>
-                <p className="text-lg font-bold tabular-nums text-emerald-700 dark:text-emerald-400">
-                  {dashboardQuery.data ? `${dashboardQuery.data.slaComplianceRate}%` : '—'}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="px-3.5 py-2">
-                <p className="text-[11px] font-medium text-slate-500">MTTA Médio</p>
-                <p className="text-lg font-bold tabular-nums">
-                  {dashboardQuery.data ? `${dashboardQuery.data.mttaMinutes} min` : '—'}
-                </p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="px-3.5 py-2">
-                <p className="text-[11px] font-medium text-slate-500">Em Risco / Violados</p>
-                <p className="text-lg font-bold tabular-nums text-red-600 dark:text-red-400">
-                  {dashboardQuery.data?.slaAtRiskTickets.length ?? '—'}
-                </p>
-              </CardContent>
-            </Card>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-center dark:border-slate-800 dark:bg-slate-900">
+              <span className="block text-[10px] text-slate-500">Cumprimento</span>
+              <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                {dashboardQuery.data ? `${dashboardQuery.data.slaComplianceRate}%` : '—'}
+              </span>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-center dark:border-slate-800 dark:bg-slate-900">
+              <span className="block text-[10px] text-slate-500">Risco</span>
+              <span className="text-xs font-bold text-red-600 dark:text-red-400">
+                {dashboardQuery.data?.slaAtRiskTickets.length ?? '—'}
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="grid flex-1 gap-4 lg:min-h-0 lg:grid-cols-3">
-          <Card className="flex flex-col lg:min-h-0">
+        {/* Mobile Tab Switcher */}
+        <div role="tablist" aria-label="Visualizações SLA Mobile" className="flex lg:hidden shrink-0 rounded-xl border border-slate-200/90 bg-white p-1 shadow-xs dark:border-white/[0.08] dark:bg-[#0F172A]">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileSlaTab === 'atRisk'}
+            onClick={() => setMobileSlaTab('atRisk')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobileSlaTab === 'atRisk'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Em Risco ({dashboardQuery.data?.slaAtRiskTickets.length ?? 0})</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileSlaTab === 'policies'}
+            onClick={() => setMobileSlaTab('policies')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobileSlaTab === 'policies'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Políticas</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileSlaTab === 'calendars'}
+            onClick={() => setMobileSlaTab('calendars')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobileSlaTab === 'calendars'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Calendários</span>
+          </button>
+        </div>
+
+        <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-3 gap-3 overflow-hidden">
+          <Card className={cn("flex flex-1 min-h-0 flex-col overflow-hidden", mobileSlaTab !== 'atRisk' && 'hidden lg:flex')}>
             <CardHeader className="shrink-0 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <ShieldAlert className="h-4 w-4 text-amber-600" aria-hidden="true" />
@@ -131,7 +167,7 @@ export default function SlaPanelPage() {
           </CardContent>
         </Card>
 
-          <Card className="flex flex-col lg:min-h-0">
+          <Card className={cn("flex flex-1 min-h-0 flex-col overflow-hidden", mobileSlaTab !== 'policies' && 'hidden lg:flex')}>
             <CardHeader className="shrink-0 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4 text-blue-600" aria-hidden="true" />
@@ -190,7 +226,7 @@ export default function SlaPanelPage() {
             </CardContent>
           </Card>
 
-          <Card className="flex flex-col lg:min-h-0">
+          <Card className={cn("flex flex-1 min-h-0 flex-col overflow-hidden", mobileSlaTab !== 'calendars' && 'hidden lg:flex')}>
             <CardHeader className="shrink-0 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-blue-600" aria-hidden="true" />

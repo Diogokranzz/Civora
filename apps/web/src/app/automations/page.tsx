@@ -13,6 +13,7 @@ import {
   EmptyState,
   Input,
   Label,
+  cn,
 } from '@civora/ui';
 import { AppShell } from '../../components/app-shell';
 import { civoraApi } from '../../lib/api';
@@ -26,6 +27,7 @@ export default function AutomationsPage() {
   const [ruleName, setRuleName] = React.useState('');
   const [trigger, setTrigger] = React.useState('TICKET_CREATED');
   const [tagToAdd, setTagToAdd] = React.useState('triagem-auto');
+  const [mobileAutoTab, setMobileAutoTab] = React.useState<'rules' | 'webhooks'>('rules');
 
   const rulesQuery = useQuery({
     queryKey: ['automation-rules', activeOrganizationId],
@@ -69,16 +71,48 @@ export default function AutomationsPage() {
 
   return (
     <AppShell breadcrumb="Automações & Webhooks">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 lg:h-full lg:min-h-0">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
         <div className="shrink-0">
-          <h1 className="text-xl font-bold tracking-tight">Motor de Regras, Automações & Webhooks</h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400">
-            Regras trigger-conditions-actions com proteção contra loops, idempotência, DLQ e webhooks assinados via HMAC-SHA256.
+          <h1 className="text-base sm:text-xl font-bold tracking-tight truncate">Automações & Webhooks</h1>
+          <p className="hidden sm:block text-xs text-slate-600 dark:text-slate-400">
+            Regras de automação, proteção contra loops, DLQ e webhooks HMAC-SHA256.
           </p>
         </div>
 
-        <div className="grid flex-1 gap-4 lg:min-h-0 lg:grid-cols-2">
-          <Card className="flex flex-col lg:min-h-0">
+        {/* Mobile Tab Switcher */}
+        <div role="tablist" aria-label="Visualizações de Automação Mobile" className="flex lg:hidden shrink-0 rounded-xl border border-slate-200/90 bg-white p-1 shadow-xs dark:border-white/[0.08] dark:bg-[#0F172A]">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileAutoTab === 'rules'}
+            onClick={() => setMobileAutoTab('rules')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobileAutoTab === 'rules'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Regras ({rulesQuery.data?.length ?? 0})</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileAutoTab === 'webhooks'}
+            onClick={() => setMobileAutoTab('webhooks')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobileAutoTab === 'webhooks'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Webhooks</span>
+          </button>
+        </div>
+
+        <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-2 gap-3 overflow-hidden">
+          <Card className={cn("flex flex-1 min-h-0 flex-col overflow-hidden", mobileAutoTab !== 'rules' && 'hidden lg:flex')}>
             <CardHeader className="shrink-0 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Workflow className="h-4 w-4 text-blue-600" aria-hidden="true" />
@@ -179,7 +213,7 @@ export default function AutomationsPage() {
             </CardContent>
           </Card>
 
-          <Card className="flex flex-col lg:min-h-0">
+          <Card className={cn("flex flex-1 min-h-0 flex-col overflow-hidden", mobileAutoTab !== 'webhooks' && 'hidden lg:flex')}>
             <CardHeader className="shrink-0 pb-3">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Webhook className="h-4 w-4 text-blue-600" aria-hidden="true" />

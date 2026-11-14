@@ -132,7 +132,7 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-[#020617]">
+      <div className="flex h-dvh max-h-dvh items-center justify-center bg-slate-50 dark:bg-[#020617]">
         <p className="text-sm text-slate-600 dark:text-slate-300">Verificando sessão Civora...</p>
       </div>
     );
@@ -158,7 +158,7 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
   const breadcrumb = pageBreadcrumb ?? resolveDefaultBreadcrumb(pathname);
 
   return (
-    <div className="relative flex min-h-screen bg-slate-50 text-slate-900 dark:bg-[#020617] dark:text-slate-100 lg:h-dvh lg:overflow-hidden">
+    <div className="relative flex h-dvh max-h-dvh w-full overflow-hidden bg-slate-50 text-slate-900 dark:bg-[#020617] dark:text-slate-100">
       <AmbientBackdrop />
       <CommandPalette />
 
@@ -299,7 +299,7 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col lg:min-h-0 lg:overflow-hidden">
+      <div className="relative z-10 flex min-w-0 flex-1 min-h-0 flex-col overflow-hidden">
         <header className="sticky top-0 z-20 flex h-12 shrink-0 items-center justify-between gap-3 border-b border-slate-200/85 bg-white px-4 dark:border-white/[0.08] dark:bg-[#0F172A]">
           <div className="flex min-w-0 items-center gap-2">
             <button
@@ -473,14 +473,14 @@ export function WorkspaceShellFrame({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex flex-1 flex-col p-3 pb-24 sm:p-4 lg:pb-4 lg:min-h-0 lg:overflow-hidden">
+        <main className="flex flex-1 min-h-0 flex-col overflow-hidden p-2 sm:p-3 lg:p-4">
           {children}
         </main>
 
         {/* Mobile Bottom Navigation Bar (iOS / Android Native Experience) */}
         <nav
           aria-label="Navegação rápida mobile"
-          className="fixed inset-x-0 bottom-0 z-30 flex h-14 items-center justify-around border-t border-slate-200/90 bg-white/95 px-2 pb-[env(safe-area-inset-bottom,0px)] shadow-lg backdrop-blur-md dark:border-white/[0.08] dark:bg-[#0F172A]/95 lg:hidden"
+          className="relative z-30 flex h-14 shrink-0 items-center justify-around border-t border-slate-200/90 bg-white/95 px-2 pb-[env(safe-area-inset-bottom,0px)] shadow-lg backdrop-blur-md dark:border-white/[0.08] dark:bg-[#0F172A]/95 lg:hidden"
         >
           <Link
             href="/tickets"

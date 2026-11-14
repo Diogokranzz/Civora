@@ -545,31 +545,106 @@ export default function TicketsConsolePage() {
 
   return (
     <AppShell breadcrumb="Chamados">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 lg:h-full lg:min-h-0">
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-3">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
+        <header className="flex shrink-0 items-center justify-between gap-2">
           <div className="min-w-0 space-y-0.5">
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl dark:text-slate-50">
-              Central de Chamados & Incidentes
+            <h1 className="text-base sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 truncate">
+              Central de Chamados
             </h1>
-            <p className="text-xs text-slate-600 dark:text-slate-300">
+            <p className="hidden sm:block text-xs text-slate-600 dark:text-slate-300">
               Orquestração em tempo real via WebSockets, SLA por calendário comercial e isolamento multi-tenant.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => void handleExportCsv()}>
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <Button variant="outline" size="sm" className="hidden sm:inline-flex h-8 text-xs" onClick={() => void handleExportCsv()}>
               <Download className="h-3.5 w-3.5" aria-hidden="true" />
               Exportar CSV
             </Button>
-            <MagneticButton size="sm" onClick={() => setCreateOpen(true)}>
+            <MagneticButton size="sm" className="h-8 text-xs px-2.5 sm:px-3" onClick={() => setCreateOpen(true)}>
               <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-              Novo Chamado
+              <span>Novo Chamado</span>
             </MagneticButton>
           </div>
         </header>
 
+        {/* Mobile Compact KPI Ribbon (Zero-scroll) */}
+        <div className="flex sm:hidden overflow-x-auto no-scrollbar gap-1.5 shrink-0 py-0.5">
+          <button
+            type="button"
+            onClick={() => {
+              setTab('ALL');
+              setPage(1);
+            }}
+            className={cn(
+              'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors',
+              tab === 'ALL'
+                ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-sky-500 dark:bg-sky-950/60 dark:text-sky-300'
+                : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300',
+            )}
+          >
+            <span>Total:</span>
+            <span className="font-bold">{metrics?.totalTickets ?? '—'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPriorityFilter((prev) => (prev === 'CRITICAL' ? '' : 'CRITICAL'));
+              setPage(1);
+            }}
+            className={cn(
+              'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors',
+              priorityFilter === 'CRITICAL'
+                ? 'border-rose-500 bg-rose-50 text-rose-700 dark:border-rose-500 dark:bg-rose-950/60 dark:text-rose-300'
+                : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300',
+            )}
+          >
+            <span className="text-rose-600 dark:text-rose-400">●</span>
+            <span>Críticos:</span>
+            <span className="font-bold">{metrics?.criticalTickets ?? '—'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTab((prev) => (prev === 'IN_PROGRESS' ? 'ALL' : 'IN_PROGRESS'));
+              setPage(1);
+            }}
+            className={cn(
+              'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors',
+              tab === 'IN_PROGRESS'
+                ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-sky-500 dark:bg-sky-950/60 dark:text-sky-300'
+                : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300',
+            )}
+          >
+            <span>Andamento:</span>
+            <span className="font-bold">{metrics?.inProgressTickets ?? '—'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTab((prev) => (prev === 'RESOLVED_GROUP' ? 'ALL' : 'RESOLVED_GROUP'));
+              setPage(1);
+            }}
+            className={cn(
+              'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap transition-colors',
+              tab === 'RESOLVED_GROUP'
+                ? 'border-emerald-500 bg-emerald-50 text-emerald-700 dark:border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-300'
+                : 'border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300',
+            )}
+          >
+            <span className="text-emerald-600 dark:text-emerald-400">✓</span>
+            <span>Resolvidos:</span>
+            <span className="font-bold">{metrics?.resolvedToday ?? '—'}</span>
+          </button>
+          <div className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold whitespace-nowrap text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+            <span>MTTR:</span>
+            <span className="font-bold">{metrics ? `${metrics.mttrMinutes}m` : '—'}</span>
+          </div>
+        </div>
+
+        {/* Desktop Grid KPI Indicators */}
         <StaggerSection
           aria-label="Indicadores operacionais"
-          className="grid shrink-0 grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-5"
+          className="hidden sm:grid shrink-0 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3"
         >
           <GlassKpiCard
             label="Total de Chamados"
@@ -632,9 +707,9 @@ export default function TicketsConsolePage() {
           />
         </StaggerSection>
 
-        <Card className="flex flex-1 flex-col overflow-hidden border-slate-200/80 bg-white dark:border-white/[0.08] dark:bg-[#0F172A] lg:min-h-0">
+        <Card className="flex flex-1 min-h-0 flex-col overflow-hidden border-slate-200/80 bg-white dark:border-white/[0.08] dark:bg-[#0F172A]">
           <div className="shrink-0 border-b border-slate-200/80 px-4 pt-1.5 dark:border-white/[0.08]">
-            <div role="tablist" aria-label="Filtrar por grupo de status" className="flex flex-wrap gap-1.5">
+            <div role="tablist" aria-label="Filtrar por grupo de status" className="flex overflow-x-auto no-scrollbar gap-1.5 whitespace-nowrap py-1">
               {STATUS_TABS.map((t) => (
                 <button
                   key={t.key}
@@ -676,12 +751,12 @@ export default function TicketsConsolePage() {
 
             <select
               aria-label="Filtrar por responsável"
+              className={cn(FILTER_SELECT_CLASS, 'hidden lg:block')}
               value={assigneeFilter}
               onChange={(e) => {
                 setAssigneeFilter(e.target.value);
                 setPage(1);
               }}
-              className={FILTER_SELECT_CLASS}
             >
               <option value="">Todos responsáveis</option>
               {(usersQuery.data ?? []).map((u) => (
@@ -709,12 +784,12 @@ export default function TicketsConsolePage() {
 
             <select
               aria-label="Filtrar por departamento"
+              className={cn(FILTER_SELECT_CLASS, 'hidden md:block')}
               value={departmentFilter}
               onChange={(e) => {
                 setDepartmentFilter(e.target.value);
                 setPage(1);
               }}
-              className={FILTER_SELECT_CLASS}
             >
               <option value="">Todos departamentos</option>
               {(departmentsQuery.data ?? []).map((d) => (
@@ -726,12 +801,12 @@ export default function TicketsConsolePage() {
 
             <select
               aria-label="Filtrar por período"
+              className={cn(FILTER_SELECT_CLASS, 'hidden lg:block')}
               value={periodDays}
               onChange={(e) => {
                 setPeriodDays(e.target.value);
                 setPage(1);
               }}
-              className={FILTER_SELECT_CLASS}
             >
               <option value="">Todo período</option>
               <option value="1">Últimas 24h</option>
@@ -741,13 +816,13 @@ export default function TicketsConsolePage() {
 
             <select
               aria-label="Ordenar por"
+              className={cn(FILTER_SELECT_CLASS, 'hidden sm:block')}
               value={`${sortBy}:${sortOrder}`}
               onChange={(e) => {
                 const [f, o] = e.target.value.split(':');
                 setSortBy(f || 'createdAt');
                 setSortOrder((o as 'asc' | 'desc') || 'desc');
               }}
-              className={FILTER_SELECT_CLASS}
             >
               <option value="createdAt:desc">Mais recentes</option>
               <option value="dueAt:asc">Menor prazo SLA</option>
@@ -757,6 +832,7 @@ export default function TicketsConsolePage() {
             <Button
               variant="outline"
               size="sm"
+              className="hidden sm:inline-flex"
               onClick={() => setDensity(density === 'comfortable' ? 'compact' : 'comfortable')}
               title="Alternar densidade da tabela"
             >
@@ -764,7 +840,7 @@ export default function TicketsConsolePage() {
               {density === 'compact' ? 'Compacta' : 'Confortável'}
             </Button>
 
-            <div className="relative">
+            <div className="relative hidden md:block">
               <Button
                 variant="outline"
                 size="sm"
@@ -798,6 +874,7 @@ export default function TicketsConsolePage() {
             <Button
               variant="outline"
               size="sm"
+              className="hidden sm:inline-flex"
               onClick={() => setSavingViewOpen((prev) => !prev)}
               aria-expanded={savingViewOpen}
             >

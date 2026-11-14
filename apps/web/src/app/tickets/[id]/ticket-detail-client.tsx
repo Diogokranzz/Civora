@@ -35,6 +35,7 @@ import {
   TableSkeleton,
   Textarea,
   TicketStatusBadge,
+  cn,
 } from '@civora/ui';
 import { AppShell } from '../../../components/app-shell';
 import { ApiClientError, civoraApi } from '../../../lib/api';
@@ -57,6 +58,7 @@ export default function TicketDetailPageClient({ idOverride }: { idOverride?: st
   const canUseAi = activeMembership?.permissions.includes('ai:use');
 
   const [activeTab, setActiveTab] = React.useState<'comments' | 'timeline' | 'attachments' | 'approvals'>('comments');
+  const [mobileSection, setMobileSection] = React.useState<'interactions' | 'details'>('interactions');
   const [commentBody, setCommentBody] = React.useState('');
   const [isInternal, setIsInternal] = React.useState(false);
 
@@ -227,7 +229,7 @@ export default function TicketDetailPageClient({ idOverride }: { idOverride?: st
 
   return (
     <AppShell breadcrumb={ticket.publicNumber}>
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 lg:h-full lg:min-h-0">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
         <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <Link
@@ -293,9 +295,41 @@ export default function TicketDetailPageClient({ idOverride }: { idOverride?: st
           </div>
         ) : null}
 
-        <div className="grid flex-1 gap-4 lg:min-h-0 lg:grid-cols-12">
+        {/* Mobile Section Switcher */}
+        <div role="tablist" aria-label="Visualizações do Chamado Mobile" className="flex lg:hidden shrink-0 rounded-xl border border-slate-200/90 bg-white p-1 shadow-xs dark:border-white/[0.08] dark:bg-[#0F172A]">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileSection === 'interactions'}
+            onClick={() => setMobileSection('interactions')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobileSection === 'interactions'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Interações ({ticket.comments.length})</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileSection === 'details'}
+            onClick={() => setMobileSection('details')}
+            className={cn(
+              'flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg py-1 text-xs font-semibold transition-colors',
+              mobileSection === 'details'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200',
+            )}
+          >
+            <span>Detalhes & SLA</span>
+          </button>
+        </div>
+
+        <div className="flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-12 gap-3 overflow-hidden">
           {/* Left 8 Columns: Description + Tabs */}
-          <div className="flex flex-col gap-3 lg:col-span-8 lg:min-h-0">
+          <div className={cn("flex-1 min-h-0 flex flex-col gap-2 lg:col-span-8 overflow-hidden", mobileSection !== 'interactions' && 'hidden lg:flex')}>
             <Card className="shrink-0 overflow-hidden">
               <CardHeader className="py-2.5">
                 <CardTitle className="text-sm">Descrição do Chamado</CardTitle>
@@ -551,7 +585,7 @@ export default function TicketDetailPageClient({ idOverride }: { idOverride?: st
           </div>
 
           {/* Right Column: Metadata, SLA Clock, AI Copilot */}
-          <div className="flex flex-col gap-3 overflow-y-auto pr-0.5 lg:col-span-4 lg:min-h-0">
+          <div className={cn("flex-1 min-h-0 flex flex-col gap-3 overflow-y-auto pr-0.5 lg:col-span-4", mobileSection !== 'details' && 'hidden lg:flex')}>
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Propriedades & Atribuição</CardTitle>

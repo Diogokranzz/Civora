@@ -48,7 +48,7 @@ export default function SettingsPage() {
 
   return (
     <AppShell breadcrumb="Configurações">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 lg:h-full lg:min-h-0">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 min-h-0 flex-col gap-2 overflow-hidden">
         <div className="shrink-0">
           <h1 className="text-xl font-bold tracking-tight">Configurações da Organização & Segurança</h1>
           <p className="text-xs text-slate-600 dark:text-slate-400">
@@ -56,7 +56,7 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <div className="grid shrink-0 gap-4 lg:grid-cols-2">
+        <div className="flex-1 min-h-0 overflow-y-auto grid gap-3 lg:grid-cols-2">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm">
